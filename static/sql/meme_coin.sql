@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS meme_coin (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  description text,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  popularity_score INT DEFAULT 0
+);
