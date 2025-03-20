@@ -10,28 +10,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var memeCoinService *services.MemeCoinService
+
 func TestMemeCoinService(t *testing.T) {
+	// Mock the repository
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
 	services.Init(mockMemeCoinRepository)
-	memeCoinService := services.GetMemeCoinService()
+	memeCoinService = services.GetMemeCoinService()
 
-	t.Log("Running tests for function 'CreateMemeCoin'")
-	testCreateMemeCoin(t, memeCoinService)
-
-	t.Log("Running tests for function 'GetMemeCoin'")
-	testGetMemeCoin(t, memeCoinService)
-
-	t.Log("Running tests for function 'UpdateMemeCoin'")
-	testUpdateMemeCoin(t, memeCoinService)
-
-	t.Log("Running tests for function 'DeleteMemeCoin'")
-	testDeleteMemeCoin(t, memeCoinService)
-
-	t.Log("Running tests for function 'PokeMemeCoin'")
-	testPokeMemeCoin(t, memeCoinService)
+	t.Run("CreateMemeCoin", testCreateMemeCoin)
+	t.Run("GetMemeCoin", testGetMemeCoin)
+	t.Run("UpdateMemeCoin", testUpdateMemeCoin)
+	t.Run("DeleteMemeCoin", testDeleteMemeCoin)
+	t.Run("PokeMemeCoin", testPokeMemeCoin)
 }
 
-func testCreateMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService) {
+func testCreateMemeCoin(t *testing.T) {
 	// Test case 1: name is empty
 	_, err := memeCoinService.CreateMemeCoin(services.CreateMemeCoinInput{
 		Name:        "",
@@ -59,7 +53,7 @@ func testCreateMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService)
 	assert.Less(t, memeCoin.PopularityScore, 100)
 }
 
-func testGetMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService) {
+func testGetMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	memeCoin, err := memeCoinService.GetMemeCoin(0)
 	assert.NotNil(t, err)
@@ -82,7 +76,7 @@ func testGetMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService) {
 	assert.Less(t, memeCoin.PopularityScore, 100)
 }
 
-func testUpdateMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService) {
+func testUpdateMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	memeCoin, err := memeCoinService.UpdateMemeCoin(0, "new description")
 	assert.NotNil(t, err)
@@ -105,7 +99,7 @@ func testUpdateMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService)
 	assert.Less(t, memeCoin.PopularityScore, 100)
 }
 
-func testDeleteMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService) {
+func testDeleteMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	memeCoin, err := memeCoinService.DeleteMemeCoin(0)
 	assert.NotNil(t, err)
@@ -128,7 +122,7 @@ func testDeleteMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService)
 	assert.Less(t, memeCoin.PopularityScore, 100)
 }
 
-func testPokeMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService) {
+func testPokeMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	memeCoin, err := memeCoinService.PokeMemeCoin(0)
 	assert.NotNil(t, err)
@@ -149,5 +143,4 @@ func testPokeMemeCoin(t *testing.T, memeCoinService *services.MemeCoinService) {
 	assert.LessOrEqual(t, memeCoin.CreatedAt.UnixNano(), timeAfterExecute.UnixNano())
 	assert.Greater(t, memeCoin.PopularityScore, 0)
 	assert.Less(t, memeCoin.PopularityScore, 100)
-
 }

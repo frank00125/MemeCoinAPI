@@ -12,37 +12,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var mockConnectionPool pgxmock.PgxPoolIface
+var memeCoinRepository *repositories.MemeCoinRepository
+
 func TestMemeCoinRepository(t *testing.T) {
 	// Mocking the database connection
-	mock, err := pgxmock.NewPool()
+	var err error
+	mockConnectionPool, err = pgxmock.NewPool()
 	if err != nil {
 		t.Fatal()
 	}
-	defer mock.Close()
-
-	// Initialize the repository with mocked database connection
-	repositories.Init(mock)
+	defer mockConnectionPool.Close()
 
 	// Get the repository
-	memeCoinRepository := repositories.GetMemeCoinRepository()
+	repositories.Init(mockConnectionPool)
+	memeCoinRepository = repositories.GetMemeCoinRepository()
 
-	t.Log("Running tests for function 'FindOne'")
-	testFindOne(t, mock, memeCoinRepository)
-
-	t.Log("Running tests for function 'CreateOne'")
-	testCreateOne(t, mock, memeCoinRepository)
-
-	t.Log("Running tests for function 'UpdateOne'")
-	testUpdateOne(t, mock, memeCoinRepository)
-
-	t.Log("Running tests for function 'DeleteOne'")
-	testDeleteOne(t, mock, memeCoinRepository)
-
-	t.Log("Running tests for function 'PokeOne'")
-	testPokeOne(t, mock, memeCoinRepository)
+	// Run the tests
+	t.Run("FindOne", testFindOne)
+	t.Run("CreateOne", testCreateOne)
+	t.Run("UpdateOne", testUpdateOne)
+	t.Run("DeleteOne", testDeleteOne)
+	t.Run("PokeOne", testPokeOne)
 }
 
-func testFindOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCoinRepository *repositories.MemeCoinRepository) {
+func testFindOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -71,7 +65,7 @@ func testFindOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCoin
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testCreateOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCoinRepository *repositories.MemeCoinRepository) {
+func testCreateOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -102,7 +96,7 @@ func testCreateOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCo
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testUpdateOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCoinRepository *repositories.MemeCoinRepository) {
+func testUpdateOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -133,7 +127,7 @@ func testUpdateOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCo
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testDeleteOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCoinRepository *repositories.MemeCoinRepository) {
+func testDeleteOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -162,7 +156,7 @@ func testDeleteOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCo
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testPokeOne(t *testing.T, mockConnectionPool pgxmock.PgxPoolIface, memeCoinRepository *repositories.MemeCoinRepository) {
+func testPokeOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
