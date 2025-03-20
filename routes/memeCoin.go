@@ -7,7 +7,7 @@ import (
 )
 
 func MemeCoinRouters(rg *gin.RouterGroup) {
-	memeCoinService := rg.Group("/memeCoin")
+	memeCoinService := rg.Group("/meme-coin")
 	{
 		memeCoinService.POST("/create", handlers.CreateMemeCoinHandler)
 		memeCoinService.GET("/:id", handlers.GetMemeCoinHandler)
