@@ -13,7 +13,7 @@ func main() {
 	config.LoadEnvVars()
 
 	// Inject database connection pool
-	config.InitDatabase(context.Background())
+	config.InitDatabase()
 	connectionPool := config.GetConnection()
 
 	dir, err := os.Getwd()
