@@ -62,10 +62,10 @@ func (m *MockMemeCoinRepository) PokeOne(id int) error {
 
 func getFakeMemeCoin() repositories.MemeCoin {
 	return repositories.MemeCoin{
-		Id:              rand.Intn(10000),
+		Id:              rand.Intn(9999) + 1,
 		Name:            "FakeCoin",
 		Description:     "A fake meme coin",
 		CreatedAt:       time.Now(),
-		PopularityScore: rand.Intn(100),
+		PopularityScore: rand.Intn(99) + 1,
 	}
 }
