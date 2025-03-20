@@ -58,7 +58,7 @@ func GetMemeCoinHandler(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid MemeCoin ID",
-			"error":   err.Error(),
+			"error":   "Wrong ID format",
 		})
 		return
 	}
@@ -93,7 +93,7 @@ func UpdateMemeCoinHandler(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid MemeCoin ID",
-			"error":   err.Error(),
+			"error":   "Wrong ID format",
 		})
 		return
 	}
@@ -132,7 +132,7 @@ func DeleteMemeCoinHandler(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid MemeCoin ID",
-			"error":   err.Error(),
+			"error":   "Wrong ID format",
 		})
 		return
 	}
@@ -166,7 +166,7 @@ func PokeMemeCoinHandler(context *gin.Context) {
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid MemeCoin ID",
-			"error":   err.Error(),
+			"error":   "Wrong ID format",
 		})
 		return
 	}
