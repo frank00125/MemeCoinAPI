@@ -5,8 +5,6 @@ import (
 	"portto-assignment/repositories"
 	"portto-assignment/routes"
 	"portto-assignment/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -24,11 +22,7 @@ func main() {
 	// Inject services
 	services.Init(memeCoinRepository)
 
-	router := gin.Default()
-
 	// Setup routes
-	routes.SetupRoutes(router)
-
+	router := routes.SetupRouter()
 	router.Run(":8080")
-
 }
