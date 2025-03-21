@@ -30,11 +30,11 @@ func main() {
 	memeCoinTableSQL := string(memeCoinTableSQLBinary)
 	fmt.Println(memeCoinTableSQL)
 
-	result, err := connectionPool.Query(context.Background(), memeCoinTableSQL)
+	_, err = connectionPool.Exec(context.Background(), memeCoinTableSQL)
 	if err != nil {
 		fmt.Printf("Failed to seed meme_coin table: %v", err)
 		return
 	}
 
-	fmt.Printf("Seeded meme_coin table: %v\n", result)
+	fmt.Println("Successfully seeded meme_coin table!")
 }
