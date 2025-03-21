@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS meme_coin (
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   popularity_score INT DEFAULT 0
 );
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE UNIQUE INDEX IF NOT EXISTS meme_coin_name_idx ON meme_coin USING btree (digest(name, 'sha256'::text));
+-- Set up unique index and constraint for "name" column
+CREATE UNIQUE INDEX IF NOT EXISTS meme_coin_name_idx ON meme_coin USING btree (name);
