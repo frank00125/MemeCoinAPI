@@ -58,12 +58,12 @@ cd portto-assignment
 # Install dependencies
 go get
 
+# Start docker compose at the background
+docker compose up -d
+
 # Setup the env
 # You need to fill in the environment variables to .env file
 cat .env.example > .env
-
-# Start docker compose at the background
-docker compose up -d
 
 # Database seeding
 go run seeds/seeds.go
