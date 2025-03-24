@@ -1,44 +1,46 @@
-package repositories_test
+package tests
 
 import (
 	"math/rand"
 	"testing"
 	"time"
 
-	"portto-assignment/config"
-	"portto-assignment/repositories"
+	"portto-assignment/internal/repositories"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 )
 
-var mockConnectionPool pgxmock.PgxPoolIface
-var memeCoinRepository *repositories.MemeCoinRepository
+type MemeCoinRepositoryTest struct {
+	mockConnectionPool pgxmock.PgxPoolIface
+	memeCoinRepository *repositories.MemeCoinRepository
+}
 
 func TestMemeCoinRepository(t *testing.T) {
 	// Mocking the database connection
-	var err error
-	mockConnectionPool, err = pgxmock.NewPool()
+	mockConnectionPool, err := pgxmock.NewPool()
 	if err != nil {
 		t.Fatal()
 	}
 	defer mockConnectionPool.Close()
 
 	// Get the repository
-	var mockedPool config.DBPool = mockConnectionPool
-	repositories.Init(&mockedPool)
-	memeCoinRepository = repositories.GetMemeCoinRepository()
+	memeCoinRepository := repositories.NewMemeCoinRepository(mockConnectionPool)
 
 	// Run the tests
-	t.Run("FindOne", testFindOne)
-	t.Run("CreateOne", testCreateOne)
-	t.Run("UpdateOne", testUpdateOne)
-	t.Run("DeleteOne", testDeleteOne)
-	t.Run("PokeOne", testPokeOne)
+	memeCoinRepositoryTest := MemeCoinRepositoryTest{
+		mockConnectionPool: mockConnectionPool,
+		memeCoinRepository: memeCoinRepository,
+	}
+	t.Run("FindOne", memeCoinRepositoryTest.testFindOne)
+	t.Run("CreateOne", memeCoinRepositoryTest.testCreateOne)
+	t.Run("UpdateOne", memeCoinRepositoryTest.testUpdateOne)
+	t.Run("DeleteOne", memeCoinRepositoryTest.testDeleteOne)
+	t.Run("PokeOne", memeCoinRepositoryTest.testPokeOne)
 }
 
-func testFindOne(t *testing.T) {
+func (repo *MemeCoinRepositoryTest) testFindOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -49,13 +51,13 @@ func testFindOne(t *testing.T) {
 
 	// Mocking the database connection
 	returnRows := pgxmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	mockConnectionPool.ExpectQuery(`
+	repo.mockConnectionPool.ExpectQuery(`
 		SELECT (.+)
 		FROM meme_coin
 		WHERE id = @id`).WithArgs(pgx.NamedArgs{
 		"id": fakeMemeCoin.Id,
 	}).WillReturnRows(returnRows)
-	memeCoin, err := memeCoinRepository.FindOne(fakeMemeCoin.Id)
+	memeCoin, err := repo.memeCoinRepository.FindOne(fakeMemeCoin.Id)
 	if err != nil {
 		t.Errorf("FindOne() failed, got error: %v", err)
 	}
@@ -67,7 +69,7 @@ func testFindOne(t *testing.T) {
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testCreateOne(t *testing.T) {
+func (repo *MemeCoinRepositoryTest) testCreateOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -78,7 +80,7 @@ func testCreateOne(t *testing.T) {
 
 	// Mocking the database connection
 	returnRows := pgxmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	mockConnectionPool.ExpectQuery(`
+	repo.mockConnectionPool.ExpectQuery(`
 		INSERT INTO meme_coin \(name, description\)
 	 	VALUES \(@name, @description\)
 		ON CONFLICT \(name\) DO NOTHING
@@ -86,7 +88,7 @@ func testCreateOne(t *testing.T) {
 		"name":        fakeMemeCoin.Name,
 		"description": fakeMemeCoin.Description,
 	}).WillReturnRows(returnRows)
-	memeCoin, err := memeCoinRepository.CreateOne(fakeMemeCoin.Name, fakeMemeCoin.Description)
+	memeCoin, err := repo.memeCoinRepository.CreateOne(fakeMemeCoin.Name, fakeMemeCoin.Description)
 	if err != nil {
 		t.Errorf("CreateOne() failed, got error: %v", err)
 	}
@@ -98,7 +100,7 @@ func testCreateOne(t *testing.T) {
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testUpdateOne(t *testing.T) {
+func (repo *MemeCoinRepositoryTest) testUpdateOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -109,7 +111,7 @@ func testUpdateOne(t *testing.T) {
 
 	// Mocking the database connection
 	returnRows := pgxmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	mockConnectionPool.ExpectQuery(`
+	repo.mockConnectionPool.ExpectQuery(`
 		UPDATE meme_coin
 		SET description = @description
 		WHERE id = @id
@@ -117,7 +119,7 @@ func testUpdateOne(t *testing.T) {
 		"id":          fakeMemeCoin.Id,
 		"description": fakeMemeCoin.Description,
 	}).WillReturnRows(returnRows)
-	memeCoin, err := memeCoinRepository.UpdateOne(fakeMemeCoin.Id, fakeMemeCoin.Description)
+	memeCoin, err := repo.memeCoinRepository.UpdateOne(fakeMemeCoin.Id, fakeMemeCoin.Description)
 	if err != nil {
 		t.Errorf("UpdateOne() failed, got error: %v", err)
 	}
@@ -129,7 +131,7 @@ func testUpdateOne(t *testing.T) {
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testDeleteOne(t *testing.T) {
+func (repo *MemeCoinRepositoryTest) testDeleteOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -140,13 +142,13 @@ func testDeleteOne(t *testing.T) {
 
 	// Mocking the database connection
 	returnRows := pgxmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	mockConnectionPool.ExpectQuery(`
+	repo.mockConnectionPool.ExpectQuery(`
 		DELETE FROM meme_coin
 		WHERE id = @id
 		RETURNING (.+)`).WithArgs(pgx.NamedArgs{
 		"id": fakeMemeCoin.Id,
 	}).WillReturnRows(returnRows)
-	memeCoin, err := memeCoinRepository.DeleteOne(fakeMemeCoin.Id)
+	memeCoin, err := repo.memeCoinRepository.DeleteOne(fakeMemeCoin.Id)
 	if err != nil {
 		t.Errorf("DeleteOne() failed, got error: %v", err)
 	}
@@ -158,7 +160,7 @@ func testDeleteOne(t *testing.T) {
 	assert.Equal(t, fakeMemeCoin.PopularityScore, memeCoin.PopularityScore)
 }
 
-func testPokeOne(t *testing.T) {
+func (repo *MemeCoinRepositoryTest) testPokeOne(t *testing.T) {
 	fakeMemeCoin := repositories.MemeCoin{
 		Id:              rand.Intn(100),
 		Name:            "Test MemeCoin",
@@ -168,16 +170,16 @@ func testPokeOne(t *testing.T) {
 	}
 
 	// Mocking the database actions
-	mockConnectionPool.ExpectBegin()
-	mockConnectionPool.ExpectExec(`
+	repo.mockConnectionPool.ExpectBegin()
+	repo.mockConnectionPool.ExpectExec(`
 		UPDATE meme_coin
 		SET popularity_score = popularity_score \+ 1
 		WHERE id = @id`).WithArgs(pgx.NamedArgs{
 		"id": fakeMemeCoin.Id,
 	}).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
-	mockConnectionPool.ExpectCommit()
+	repo.mockConnectionPool.ExpectCommit()
 
-	err := memeCoinRepository.PokeOne(fakeMemeCoin.Id)
+	err := repo.memeCoinRepository.PokeOne(fakeMemeCoin.Id)
 	if err != nil {
 		t.Errorf("PokeOne() failed, got error: %v", err)
 	}

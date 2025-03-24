@@ -2,16 +2,13 @@ package services
 
 import (
 	"errors"
-	"portto-assignment/repositories"
+	"portto-assignment/internal/repositories"
 )
 
-type MemeCoinService struct {
-	repo repositories.MemeCoinRepositoryInterface
-}
-
-type CreateMemeCoinInput struct {
-	Name        string
-	Description string
+func NewMemeCoinService(memeCoinRepository repositories.MemeCoinRepositoryInterface) *MemeCoinService {
+	return &MemeCoinService{
+		repo: memeCoinRepository,
+	}
 }
 
 func (service *MemeCoinService) CreateMemeCoin(input CreateMemeCoinInput) (*repositories.MemeCoin, error) {

@@ -10,7 +10,7 @@ import (
 
 func init() {
 	dir, _ := os.Getwd()
-	docPath := path.Join(dir, "docs", "swagger.yaml")
+	docPath := path.Join(dir, "api", "swagger.yaml")
 	docContent, _ := os.ReadFile(docPath)
 
 	// SwaggerInfo holds exported Swagger Info so clients can modify it

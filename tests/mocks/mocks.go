@@ -3,7 +3,7 @@ package mocks
 import (
 	"errors"
 	"math/rand"
-	"portto-assignment/repositories"
+	"portto-assignment/internal/repositories"
 	"time"
 )
 
@@ -15,14 +15,14 @@ func (m *MockMemeCoinRepository) FindOne(id int) (*repositories.MemeCoin, error)
 		return nil, errors.New("invalid ID")
 	}
 
-	fakeMemeCoin := getFakeMemeCoin()
+	fakeMemeCoin := m.getFakeMemeCoin()
 	fakeMemeCoin.Id = id
 
 	return &fakeMemeCoin, nil
 }
 
 func (m *MockMemeCoinRepository) CreateOne(name string, description string) (*repositories.MemeCoin, error) {
-	fakeMemeCoin := getFakeMemeCoin()
+	fakeMemeCoin := m.getFakeMemeCoin()
 	fakeMemeCoin.Name = name
 	fakeMemeCoin.Description = description
 
@@ -34,7 +34,7 @@ func (m *MockMemeCoinRepository) UpdateOne(id int, description string) (*reposit
 		return nil, errors.New("invalid ID")
 	}
 
-	fakeMemeCoin := getFakeMemeCoin()
+	fakeMemeCoin := m.getFakeMemeCoin()
 	fakeMemeCoin.Id = id
 	fakeMemeCoin.Description = description
 
@@ -46,7 +46,7 @@ func (m *MockMemeCoinRepository) DeleteOne(id int) (*repositories.MemeCoin, erro
 		return nil, errors.New("invalid ID")
 	}
 
-	fakeMemeCoin := getFakeMemeCoin()
+	fakeMemeCoin := m.getFakeMemeCoin()
 	fakeMemeCoin.Id = id
 
 	return &fakeMemeCoin, nil
@@ -60,7 +60,7 @@ func (m *MockMemeCoinRepository) PokeOne(id int) error {
 	return nil
 }
 
-func getFakeMemeCoin() repositories.MemeCoin {
+func (m *MockMemeCoinRepository) getFakeMemeCoin() repositories.MemeCoin {
 	return repositories.MemeCoin{
 		Id:              rand.Intn(9999) + 1,
 		Name:            "FakeCoin",

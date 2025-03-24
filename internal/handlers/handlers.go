@@ -3,19 +3,16 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"portto-assignment/services"
+	"portto-assignment/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-type HttpError struct {
-	Message string `json:"message"`
-	Error   string `json:"error"`
-}
-
-type CreateMemeCoinRequestBody struct {
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description" binding:"-"`
+func NewMemeCoinHandler(service services.MemeCoinServiceInterface) *MemeCoinHandler {
+	memeCoinHandler := MemeCoinHandler{
+		service: service,
+	}
+	return &memeCoinHandler
 }
 
 // CreateMemeCoin godoc
@@ -31,7 +28,7 @@ type CreateMemeCoinRequestBody struct {
 //	@Failure	409			{object}	handlers.HttpError
 //	@Failure	500			{object}	handlers.HttpError
 //	@Router		/create [post]
-func CreateMemeCoinHandler(context *gin.Context) {
+func (handler *MemeCoinHandler) CreateMemeCoin(context *gin.Context) {
 	// Get request body
 	var reqBody *CreateMemeCoinRequestBody
 	err := context.BindJSON(&reqBody)
@@ -46,8 +43,7 @@ func CreateMemeCoinHandler(context *gin.Context) {
 	// Call service
 	name := reqBody.Name
 	description := reqBody.Description
-	memeCoinService := services.GetMemeCoinService()
-	newMemeCoin, err := memeCoinService.CreateMemeCoin(services.CreateMemeCoinInput{
+	newMemeCoin, err := handler.service.CreateMemeCoin(services.CreateMemeCoinInput{
 		Name:        name,
 		Description: description,
 	})
@@ -82,7 +78,7 @@ func CreateMemeCoinHandler(context *gin.Context) {
 //	@Failure	404	{object}	handlers.HttpError
 //	@Failure	500	{object}	handlers.HttpError
 //	@Router		/{id} [get]
-func GetMemeCoinHandler(context *gin.Context) {
+func (handler *MemeCoinHandler) GetMemeCoin(context *gin.Context) {
 	var reqBody *struct {
 		Id int `uri:"id" binding:"required"`
 	}
@@ -96,8 +92,7 @@ func GetMemeCoinHandler(context *gin.Context) {
 	}
 
 	id := reqBody.Id
-	memeCoinService := services.GetMemeCoinService()
-	memeCoin, err := memeCoinService.GetMemeCoin(id)
+	memeCoin, err := handler.service.GetMemeCoin(id)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",
@@ -116,10 +111,6 @@ func GetMemeCoinHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, memeCoin)
 }
 
-type UpdateMemeCoinRequestBody struct {
-	Description string `json:"description" binding:"required"`
-}
-
 // UpdateMemeCoin  godoc
 //
 //	@Summary	Update a MemeCoin
@@ -133,7 +124,7 @@ type UpdateMemeCoinRequestBody struct {
 //	@Failure	404			{object}	handlers.HttpError
 //	@Failure	500			{object}	handlers.HttpError
 //	@Router		/{id} [patch]
-func UpdateMemeCoinHandler(context *gin.Context) {
+func (handler *MemeCoinHandler) UpdateMemeCoin(context *gin.Context) {
 	var urlParams *struct {
 		Id int `uri:"id" binding:"required"`
 	}
@@ -158,8 +149,7 @@ func UpdateMemeCoinHandler(context *gin.Context) {
 		return
 	}
 
-	memeCoinService := services.GetMemeCoinService()
-	updatedMemeCoin, err := memeCoinService.UpdateMemeCoin(urlParams.Id, reqBody.Description)
+	updatedMemeCoin, err := handler.service.UpdateMemeCoin(urlParams.Id, reqBody.Description)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",
@@ -183,7 +173,7 @@ func UpdateMemeCoinHandler(context *gin.Context) {
 //	@Failure	404	{object}	handlers.HttpError
 //	@Failure	500	{object}	handlers.HttpError
 //	@Router		/{id} [delete]
-func DeleteMemeCoinHandler(context *gin.Context) {
+func (handler *MemeCoinHandler) DeleteMemeCoin(context *gin.Context) {
 	var reqBody *struct {
 		Id int `uri:"id" binding:"required"`
 	}
@@ -197,8 +187,7 @@ func DeleteMemeCoinHandler(context *gin.Context) {
 	}
 
 	id := reqBody.Id
-	memeCoinService := services.GetMemeCoinService()
-	deletedMemeCoin, err := memeCoinService.DeleteMemeCoin(id)
+	deletedMemeCoin, err := handler.service.DeleteMemeCoin(id)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",
@@ -229,7 +218,7 @@ func DeleteMemeCoinHandler(context *gin.Context) {
 //	@Failure	404			{object}	handlers.HttpError
 //	@Failure	500			{object}	handlers.HttpError
 //	@Router		/{id}/poke [post]
-func PokeMemeCoinHandler(context *gin.Context) {
+func (handler *MemeCoinHandler) PokeMemeCoin(context *gin.Context) {
 	var reqBody *struct {
 		Id int `uri:"id" binding:"required"`
 	}
@@ -243,8 +232,7 @@ func PokeMemeCoinHandler(context *gin.Context) {
 	}
 
 	id := reqBody.Id
-	memeCoinService := services.GetMemeCoinService()
-	pokedMemeCoin, err := memeCoinService.PokeMemeCoin(id)
+	pokedMemeCoin, err := handler.service.PokeMemeCoin(id)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",

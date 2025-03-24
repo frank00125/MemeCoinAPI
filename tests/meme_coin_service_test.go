@@ -1,11 +1,11 @@
-package services_test
+package tests
 
 import (
 	"testing"
 	"time"
 
-	"portto-assignment/mocks"
-	"portto-assignment/services"
+	"portto-assignment/internal/services"
+	"portto-assignment/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -15,8 +15,7 @@ var memeCoinService *services.MemeCoinService
 func TestMemeCoinService(t *testing.T) {
 	// Mock the repository
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
-	services.Init(mockMemeCoinRepository)
-	memeCoinService = services.GetMemeCoinService()
+	memeCoinService = services.NewMemeCoinService(mockMemeCoinRepository)
 
 	t.Run("CreateMemeCoin", testCreateMemeCoin)
 	t.Run("GetMemeCoin", testGetMemeCoin)

@@ -1,16 +1,18 @@
-package main
+package tests
 
 import (
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"portto-assignment/mocks"
-	"portto-assignment/routes"
-	"portto-assignment/services"
 	"strconv"
 	"testing"
 	"time"
+
+	"portto-assignment/internal/handlers"
+	"portto-assignment/internal/routes"
+	"portto-assignment/internal/services"
+	"portto-assignment/tests/mocks"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -338,10 +340,12 @@ func buildTestService() {
 	// Mock repositories
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
 
-	// Inject services
-	services.Init(mockMemeCoinRepository)
+	memeCoinService := services.NewMemeCoinService(mockMemeCoinRepository)
+	memeCoinHandler := handlers.NewMemeCoinHandler(memeCoinService)
 
 	// Setup routes
+	router = routes.NewRouter(memeCoinHandler)
+
+	// Set Gin to test mode
 	gin.SetMode(gin.TestMode)
-	router = routes.SetupRouter()
 }

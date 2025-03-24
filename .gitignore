@@ -27,7 +27,9 @@ vendor/
 .env
 .env.local
 .env.*
-!.env.example
+config/**/config.env
+config/**/config.env.*
+!config/config.env.example
 
 # OS specific files
 .DS_Store
