@@ -23,11 +23,22 @@ func main() {
 	}
 	defer connectionPool.Close()
 
+	// Get redis connection
+	redisClient, err := config.NewRedisClient()
+	if err != nil {
+		panic(err)
+	}
+	defer redisClient.Close()
+
 	// Inject database connection pools
 	memeCoinRepository := repositories.NewMemeCoinRepository(connectionPool)
+	redisRepository := repositories.NewRedisCachedRepository(connectionPool, redisClient, repositories.RepositoryConfig{
+		SyncBatchSize: 3,
+		SyncInterval:  5,
+	})
 
 	// Inject repositories
-	memeCoinService := services.NewMemeCoinService(memeCoinRepository)
+	memeCoinService := services.NewMemeCoinService(memeCoinRepository, redisRepository)
 
 	// Inject services
 	memeCoinHandler := handlers.NewMemeCoinHandler(memeCoinService)

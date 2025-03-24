@@ -1,21 +1,27 @@
 package config
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
+	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/spf13/viper"
 )
 
-func NewDatabaseConnectionPool() (DatabaseConnectionPoolInterface, error) {
+func NewDatabaseConnectionPool() (*sql.DB, error) {
 	connectionString := viper.GetString("POSTGRESQL_URL")
 	fmt.Println("Connection String: ", connectionString)
 
-	pool, err := pgxpool.New(context.Background(), connectionString)
+	db, err := sql.Open("pgx", connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to database: %w", err)
 	}
 
-	return pool, nil
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+
+	return db, nil
 }

@@ -213,7 +213,7 @@ func (handler *MemeCoinHandler) DeleteMemeCoin(context *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Param		id			path		int		true	"MemeCoin ID"
-//	@Success	200			{object}	repositories.MemeCoin
+//	@Success	204
 //	@Failure	400			{object}	handlers.HttpError
 //	@Failure	404			{object}	handlers.HttpError
 //	@Failure	500			{object}	handlers.HttpError
@@ -232,7 +232,7 @@ func (handler *MemeCoinHandler) PokeMemeCoin(context *gin.Context) {
 	}
 
 	id := reqBody.Id
-	pokedMemeCoin, err := handler.service.PokeMemeCoin(id)
+	err = handler.service.PokeMemeCoin(id)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",
@@ -241,12 +241,5 @@ func (handler *MemeCoinHandler) PokeMemeCoin(context *gin.Context) {
 		return
 	}
 
-	if pokedMemeCoin == nil {
-		context.JSON(http.StatusNotFound, HttpError{
-			Message: "MemeCoin not found",
-		})
-		return
-	}
-
-	context.JSON(http.StatusOK, pokedMemeCoin)
+	context.JSON(http.StatusNoContent, nil)
 }

@@ -5,9 +5,10 @@ import (
 	"portto-assignment/internal/repositories"
 )
 
-func NewMemeCoinService(memeCoinRepository repositories.MemeCoinRepositoryInterface) *MemeCoinService {
+func NewMemeCoinService(memeCoinRepository repositories.MemeCoinRepositoryInterface, redisRepository repositories.RedisRepositoryInterface) *MemeCoinService {
 	return &MemeCoinService{
-		repo: memeCoinRepository,
+		repo:  memeCoinRepository,
+		redis: redisRepository,
 	}
 }
 
@@ -33,18 +34,12 @@ func (service *MemeCoinService) DeleteMemeCoin(id int) (*repositories.MemeCoin, 
 	return service.repo.DeleteOne(id)
 }
 
-func (service *MemeCoinService) PokeMemeCoin(id int) (*repositories.MemeCoin, error) {
-	// Poke meme coin
-	err := service.repo.PokeOne(id)
+func (service *MemeCoinService) PokeMemeCoin(id int) error {
+	// Increment popularity_score at redis
+	err := service.redis.IncrementPopularity(id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// Get updated meme coin after transaction
-	updatedMemeCoin, err := service.repo.FindOne(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedMemeCoin, nil
+	return nil
 }

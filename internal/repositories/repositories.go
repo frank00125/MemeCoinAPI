@@ -2,31 +2,27 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"portto-assignment/config"
 
 	"github.com/jackc/pgx/v5"
 )
 
-func NewMemeCoinRepository(connectionPool config.DatabaseConnectionPoolInterface) *MemeCoinRepository {
+func NewMemeCoinRepository(db *sql.DB) *MemeCoinRepository {
 	return &MemeCoinRepository{
-		pool: connectionPool,
+		db: db,
 	}
 }
 
 func (repo *MemeCoinRepository) FindOne(id int) (*MemeCoin, error) {
 	const sqlStatement string = `
-		SELECT (id, name, description, created_at, popularity_score)
-		FROM meme_coin
-		WHERE id = @id`
-
-	queryArgs := pgx.NamedArgs{
-		"id": id,
-	}
+		SELECT id, name, description, created_at, popularity_score
+		FROM meme_coins
+		WHERE id = $1`
 
 	var memeCoin MemeCoin
-	row := repo.pool.QueryRow(context.Background(), sqlStatement, queryArgs)
-	err := row.Scan(&memeCoin)
+	row := repo.db.QueryRowContext(context.Background(), sqlStatement, id)
+	err := row.Scan(&memeCoin.Id, &memeCoin.Name, &memeCoin.Description, &memeCoin.CreatedAt, &memeCoin.PopularityScore)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
@@ -38,18 +34,14 @@ func (repo *MemeCoinRepository) FindOne(id int) (*MemeCoin, error) {
 
 func (repo *MemeCoinRepository) CreateOne(name string, description string) (*MemeCoin, error) {
 	const sqlStatement string = `
-		INSERT INTO meme_coin (name, description) 
-		VALUES (@name, @description)
+		INSERT INTO meme_coins (name, description) 
+		VALUES ($1, $2)
 	 	ON CONFLICT (name) DO NOTHING
-		RETURNING (id, name, description, created_at, popularity_score)`
-
-	queryArgs := pgx.NamedArgs{
-		"name":        name,
-		"description": description,
-	}
+		RETURNING id, name, description, created_at, popularity_score`
 
 	var newMemeCoin MemeCoin
-	err := repo.pool.QueryRow(context.Background(), sqlStatement, queryArgs).Scan(&newMemeCoin)
+	row := repo.db.QueryRowContext(context.Background(), sqlStatement, name, description)
+	err := row.Scan(&newMemeCoin.Id, &newMemeCoin.Name, &newMemeCoin.Description, &newMemeCoin.CreatedAt, &newMemeCoin.PopularityScore)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
@@ -61,18 +53,14 @@ func (repo *MemeCoinRepository) CreateOne(name string, description string) (*Mem
 
 func (repo *MemeCoinRepository) UpdateOne(id int, description string) (*MemeCoin, error) {
 	const sqlStatement string = `
-		UPDATE meme_coin
-		SET description = @description
-		WHERE id = @id
-		RETURNING (id, name, description, created_at, popularity_score)`
-
-	queryArgs := pgx.NamedArgs{
-		"id":          id,
-		"description": description,
-	}
+		UPDATE meme_coins
+		SET description = $2
+		WHERE id = $1
+		RETURNING id, name, description, created_at, popularity_score`
 
 	var updatedMemeCoin MemeCoin
-	err := repo.pool.QueryRow(context.Background(), sqlStatement, queryArgs).Scan(&updatedMemeCoin)
+	row := repo.db.QueryRowContext(context.Background(), sqlStatement, id, description)
+	err := row.Scan(&updatedMemeCoin.Id, &updatedMemeCoin.Name, &updatedMemeCoin.Description, &updatedMemeCoin.CreatedAt, &updatedMemeCoin.PopularityScore)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
@@ -84,16 +72,13 @@ func (repo *MemeCoinRepository) UpdateOne(id int, description string) (*MemeCoin
 
 func (repo *MemeCoinRepository) DeleteOne(id int) (*MemeCoin, error) {
 	const sqlStatement string = `
-		DELETE FROM meme_coin
-		WHERE id = @id
-		RETURNING (id, name, description, created_at, popularity_score)`
-
-	queryArgs := pgx.NamedArgs{
-		"id": id,
-	}
+		DELETE FROM meme_coins
+		WHERE id = $1
+		RETURNING id, name, description, created_at, popularity_score`
 
 	var deletedMemeCoin MemeCoin
-	err := repo.pool.QueryRow(context.Background(), sqlStatement, queryArgs).Scan(&deletedMemeCoin)
+	row := repo.db.QueryRowContext(context.Background(), sqlStatement, id)
+	err := row.Scan(&deletedMemeCoin.Id, &deletedMemeCoin.Name, &deletedMemeCoin.Description, &deletedMemeCoin.CreatedAt, &deletedMemeCoin.PopularityScore)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
@@ -101,34 +86,4 @@ func (repo *MemeCoinRepository) DeleteOne(id int) (*MemeCoin, error) {
 	}
 
 	return &deletedMemeCoin, nil
-}
-
-func (repo *MemeCoinRepository) PokeOne(id int) error {
-	const sqlStatement string = `
-		UPDATE meme_coin
-		SET popularity_score = popularity_score + 1
-		WHERE id = @id`
-
-	queryArgs := pgx.NamedArgs{
-		"id": id,
-	}
-
-	tx, err := repo.pool.Begin(context.Background())
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(context.Background(), sqlStatement, queryArgs)
-	if err != nil {
-		tx.Rollback(context.Background())
-		return err
-	}
-
-	err = tx.Commit(context.Background())
-	if err != nil {
-		tx.Rollback(context.Background())
-		return err
-	}
-
-	return nil
 }

@@ -340,7 +340,7 @@ func buildTestService() {
 	// Mock repositories
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
 
-	memeCoinService := services.NewMemeCoinService(mockMemeCoinRepository)
+	memeCoinService := services.NewMemeCoinService(mockMemeCoinRepository, nil)
 	memeCoinHandler := handlers.NewMemeCoinHandler(memeCoinService)
 
 	// Setup routes

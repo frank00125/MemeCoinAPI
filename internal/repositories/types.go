@@ -1,16 +1,18 @@
 package repositories
 
 import (
-	"portto-assignment/config"
+	"database/sql"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type MemeCoin struct {
-	Id              int       `json:"id"`
-	Name            string    `json:"name"`
-	Description     string    `json:"description"`
-	CreatedAt       time.Time `json:"created_at"`
-	PopularityScore int       `json:"popularity_score"`
+	Id              int       `db:"id" json:"id"`
+	Name            string    `db:"name" json:"name"`
+	Description     string    `db:"description" json:"description"`
+	CreatedAt       time.Time `db:"created_at" json:"created_at"`
+	PopularityScore int       `db:"popularity_score" json:"popularity_score"`
 }
 
 type MemeCoinRepositoryInterface interface {
@@ -18,9 +20,34 @@ type MemeCoinRepositoryInterface interface {
 	CreateOne(name string, description string) (*MemeCoin, error)
 	UpdateOne(id int, description string) (*MemeCoin, error)
 	DeleteOne(id int) (*MemeCoin, error)
-	PokeOne(id int) error
 }
 
 type MemeCoinRepository struct {
-	pool config.DatabaseConnectionPoolInterface
+	db *sql.DB
 }
+
+type RedisRepositoryInterface interface {
+	IncrementPopularity(id int) error
+}
+
+type RedisCachedRepository struct {
+	db     *sql.DB
+	redis  *redis.Client
+	config RepositoryConfig
+	// Channel for tracking coins that need syncing
+	dirtyKeys chan string
+}
+
+type RepositoryConfig struct {
+	SyncBatchSize int
+	SyncInterval  time.Duration
+	// Other config options
+}
+
+const (
+	// DefaultSyncBatchSize is the number of records to sync in one batch
+	DefaultSyncBatchSize = 100
+
+	// DefaultSyncInterval is how often to sync cache to database
+	DefaultSyncInterval = 5 * time.Second
+)
