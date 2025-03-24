@@ -6,7 +6,6 @@ var memeCoinRepository *MemeCoinRepository
 
 func Init(connectionPool *config.DBPool) {
 	if memeCoinRepository == nil {
-		connectionPool := config.GetDatabaseConnectionPool()
 		memeCoinRepository = &MemeCoinRepository{
 			pool: *connectionPool, // Store the pointer instead of dereferencing it
 		}
