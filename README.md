@@ -85,6 +85,17 @@ Instructions for running the unit test
 go clean -testcache && go test -v ./...
 ```
 
+Instructions for generating new API documentation
+
+```bash
+# Generate new API documentation after development
+swag init --outputTypes yaml
+```
+
 ## Docker
 
 We use `docker compose` to start local database for the development. Database files will be in the `/docker-database` directory
+
+```
+
+```

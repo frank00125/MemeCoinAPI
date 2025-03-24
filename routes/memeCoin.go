@@ -6,7 +6,7 @@ import (
 	"portto-assignment/handlers"
 )
 
-func MemeCoinRouters(rg *gin.RouterGroup) {
+func SetupMemeCoinRoutes(rg *gin.RouterGroup) {
 	memeCoinService := rg.Group("/meme-coin")
 	{
 		memeCoinService.POST("/create", handlers.CreateMemeCoinHandler)

@@ -1,0 +1,215 @@
+basePath: /v1/meme-coin/
+definitions:
+  handlers.CreateMemeCoinRequestBody:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  handlers.HttpError:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  handlers.UpdateMemeCoinRequestBody:
+    properties:
+      description:
+        type: string
+    required:
+    - description
+    type: object
+  repositories.MemeCoin:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      popularity_score:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a simple API for MemeCoin
+  title: MemeCoin API
+  version: "1.0"
+paths:
+  /{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: MemeCoin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repositories.MemeCoin'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+      summary: Delete a MemeCoin
+      tags:
+      - MemeCoin
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: MemeCoin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repositories.MemeCoin'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+      summary: Get a MemeCoin
+      tags:
+      - MemeCoin
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: MemeCoin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateMemeCoinRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repositories.MemeCoin'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+      summary: Update a MemeCoin
+      tags:
+      - MemeCoin
+  /{id}/poke:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: MemeCoin ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repositories.MemeCoin'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+      summary: Poke a MemeCoin
+      tags:
+      - MemeCoin
+  /create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateMemeCoinRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repositories.MemeCoin'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HttpError'
+      summary: Create a MemeCoin
+      tags:
+      - MemeCoin
+swagger: "2.0"
