@@ -9,12 +9,8 @@ import (
 )
 
 func main() {
-	// Load environment variables
-	config.LoadEnvVars()
-
-	// Inject database connection pool
-	config.InitDatabase()
-	connectionPool := config.GetConnection()
+	// Get database connection pool
+	connectionPool := config.GetDatabaseConnectionPool()
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -30,7 +26,8 @@ func main() {
 	memeCoinTableSQL := string(memeCoinTableSQLBinary)
 	fmt.Println(memeCoinTableSQL)
 
-	_, err = connectionPool.Exec(context.Background(), memeCoinTableSQL)
+	pool := *connectionPool
+	_, err = pool.Exec(context.Background(), memeCoinTableSQL)
 	if err != nil {
 		fmt.Printf("Failed to seed meme_coin table: %v", err)
 		return

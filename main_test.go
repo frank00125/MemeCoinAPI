@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"portto-assignment/config"
 	"portto-assignment/mocks"
 	"portto-assignment/routes"
 	"portto-assignment/services"
@@ -20,7 +19,7 @@ import (
 var router *gin.Engine
 
 func TestEndpoints(t *testing.T) {
-	buildTestService(t)
+	buildTestService()
 
 	t.Run("POST /v1/meme-coin/create", testCreateMemeCoinEndpoint)
 	t.Run("PATCH /v1/meme-coin/:id", testUpdateMemeCoinEndpoint)
@@ -335,10 +334,7 @@ func testPockMemeCoinEndpoint(t *testing.T) {
 	assert.Less(t, int(resJSON["popularity_score"].(float64)), 100)
 }
 
-func buildTestService(t *testing.T) {
-	// Load environment variables
-	config.LoadEnvVars()
-
+func buildTestService() {
 	// Mock repositories
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
 

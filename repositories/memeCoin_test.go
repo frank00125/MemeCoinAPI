@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"portto-assignment/config"
 	"portto-assignment/repositories"
 
 	"github.com/jackc/pgx/v5"
@@ -25,7 +26,8 @@ func TestMemeCoinRepository(t *testing.T) {
 	defer mockConnectionPool.Close()
 
 	// Get the repository
-	repositories.Init(mockConnectionPool)
+	var mockedPool config.DBPool = mockConnectionPool
+	repositories.Init(&mockedPool)
 	memeCoinRepository = repositories.GetMemeCoinRepository()
 
 	// Run the tests

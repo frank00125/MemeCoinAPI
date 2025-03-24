@@ -18,9 +18,9 @@ type DBPool interface {
 	Close()
 }
 
-var connectionPool DBPool
+var connectionPool *DBPool
 
-func InitDatabase() error {
+func initDatabase() error {
 	connectionString := getEnvVar("POSTGRESQL_DATABASE_URL")
 	if connectionString == "" {
 		panic("NO DATABASE URL PROVIDED, shutting down...")
@@ -33,20 +33,22 @@ func InitDatabase() error {
 		return fmt.Errorf("error parsing config: %w", err)
 	}
 
-	connectionPool, err = pgxpool.NewWithConfig(ctx, poolConfig)
+	var pool DBPool
+	pool, err = pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		return fmt.Errorf("error creating pool: %w", err)
 	}
+	connectionPool = &pool
 
-	err = connectionPool.Ping(ctx)
+	err = pool.Ping(ctx)
 	if err != nil {
-		connectionPool.Close()
+		pool.Close()
 		return fmt.Errorf("error pinging database: %w", err)
 	}
 
 	return nil
 }
 
-func GetConnection() DBPool {
+func GetDatabaseConnectionPool() *DBPool {
 	return connectionPool
 }

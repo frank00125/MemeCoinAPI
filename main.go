@@ -15,12 +15,8 @@ import (
 // @host		localhost:8080
 // @BasePath	/v1/meme-coin/
 func main() {
-	// Load environment variables
-	config.LoadEnvVars()
-
-	// Inject database connection pool
-	config.InitDatabase()
-	connectionPool := config.GetConnection()
+	// Get database connection pool
+	connectionPool := config.GetDatabaseConnectionPool()
 
 	// Inject repositories
 	repositories.Init(connectionPool)

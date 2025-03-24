@@ -6,7 +6,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func LoadEnvVars() {
+func loadEnvVars() {
 	godotenv.Load()
 
 }
