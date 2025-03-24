@@ -16,10 +16,12 @@ import (
 // @BasePath	/v1/meme-coin/
 func main() {
 	// Get database connection pool
-	connectionPool := config.GetDatabaseConnectionPool()
+	connectionPoolPtr := config.GetDatabaseConnectionPool()
+	connectionPool := *connectionPoolPtr
+	defer connectionPool.Close()
 
 	// Inject repositories
-	repositories.Init(connectionPool)
+	repositories.Init(connectionPoolPtr)
 	memeCoinRepository := repositories.GetMemeCoinRepository()
 
 	// Inject services
