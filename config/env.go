@@ -8,7 +8,6 @@ import (
 
 func loadEnvVars() {
 	godotenv.Load()
-
 }
 
 func getEnvVar(key string) string {
