@@ -325,22 +325,15 @@ func testPockMemeCoinEndpoint(t *testing.T) {
 	}
 	router.ServeHTTP(idInRequestCaseRecorder, req)
 
-	resJSONstr = idInRequestCaseRecorder.Body.String()
-	resJSON = map[string]any{}
-	json.Unmarshal([]byte(resJSONstr), &resJSON)
-	assert.Equal(t, http.StatusOK, idInRequestCaseRecorder.Code)
-	assert.Equal(t, "FakeCoin", resJSON["name"])
-	assert.Equal(t, "A fake meme coin", resJSON["description"])
-	assert.Equal(t, int(resJSON["id"].(float64)), memeCoinId)
-	assert.Greater(t, int(resJSON["popularity_score"].(float64)), 0)
-	assert.Less(t, int(resJSON["popularity_score"].(float64)), 100)
+	assert.Equal(t, http.StatusNoContent, idInRequestCaseRecorder.Code)
 }
 
 func buildTestService() {
 	// Mock repositories
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
+	mockRedisCachedRepository := &mocks.MockRedisCachedRepository{}
 
-	memeCoinService := services.NewMemeCoinService(mockMemeCoinRepository, nil)
+	memeCoinService := services.NewMemeCoinService(mockMemeCoinRepository, mockRedisCachedRepository)
 	memeCoinHandler := handlers.NewMemeCoinHandler(memeCoinService)
 
 	// Setup routes

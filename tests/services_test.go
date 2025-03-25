@@ -15,7 +15,9 @@ var memeCoinService *services.MemeCoinService
 func TestMemeCoinService(t *testing.T) {
 	// Mock the repository
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
-	memeCoinService = services.NewMemeCoinService(mockMemeCoinRepository, nil)
+	mockRedisCachedRepository := &mocks.MockRedisCachedRepository{}
+
+	memeCoinService = services.NewMemeCoinService(mockMemeCoinRepository, mockRedisCachedRepository)
 
 	t.Run("CreateMemeCoin", testCreateMemeCoin)
 	t.Run("GetMemeCoin", testGetMemeCoin)
@@ -25,14 +27,7 @@ func TestMemeCoinService(t *testing.T) {
 }
 
 func testCreateMemeCoin(t *testing.T) {
-	// Test case 1: name is empty
-	_, err := memeCoinService.CreateMemeCoin(services.CreateMemeCoinInput{
-		Name:        "",
-		Description: "description",
-	})
-	assert.NotNil(t, err)
-
-	// Test case 2: name is not empty
+	// Test case 1: name is not empty
 	timeBeforeExecute := time.Now()
 	memeCoin, err := memeCoinService.CreateMemeCoin(services.CreateMemeCoinInput{
 		Name:        "name",

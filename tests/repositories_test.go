@@ -2,13 +2,12 @@ package tests
 
 import (
 	"math/rand"
+	"portto-assignment/internal/repositories"
+	"regexp"
 	"testing"
 	"time"
 
-	"portto-assignment/internal/repositories"
-
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,6 +36,9 @@ func TestMemeCoinRepository(t *testing.T) {
 	t.Run("CreateOne", memeCoinRepositoryTest.testCreateOne)
 	t.Run("UpdateOne", memeCoinRepositoryTest.testUpdateOne)
 	t.Run("DeleteOne", memeCoinRepositoryTest.testDeleteOne)
+
+	err = mock.ExpectationsWereMet()
+	assert.NoError(t, err)
 }
 
 func (repo *MemeCoinRepositoryTest) testFindOne(t *testing.T) {
@@ -49,13 +51,12 @@ func (repo *MemeCoinRepositoryTest) testFindOne(t *testing.T) {
 	}
 
 	// Mocking the database connection
-	returnRows := sqlmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	repo.mockConnectionPool.ExpectQuery(`
-		SELECT (.+)
-		FROM meme_coin
-		WHERE id = @id`).WithArgs(pgx.NamedArgs{
-		"id": fakeMemeCoin.Id,
-	}).WillReturnRows(returnRows)
+	sqlStatement := "SELECT id, name, description, created_at, popularity_score FROM meme_coins WHERE id = $1"
+	repo.mockConnectionPool.ExpectQuery(regexp.QuoteMeta(sqlStatement)).
+		WithArgs(fakeMemeCoin.Id).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "name", "description", "created_at", "popularity_score"}).
+			AddRow(fakeMemeCoin.Id, fakeMemeCoin.Name, fakeMemeCoin.Description, fakeMemeCoin.CreatedAt, fakeMemeCoin.PopularityScore))
 	memeCoin, err := repo.memeCoinRepository.FindOne(fakeMemeCoin.Id)
 	if err != nil {
 		t.Errorf("FindOne() failed, got error: %v", err)
@@ -78,15 +79,12 @@ func (repo *MemeCoinRepositoryTest) testCreateOne(t *testing.T) {
 	}
 
 	// Mocking the database connection
-	returnRows := sqlmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	repo.mockConnectionPool.ExpectQuery(`
-		INSERT INTO meme_coin \(name, description\)
-	 	VALUES \(@name, @description\)
-		ON CONFLICT \(name\) DO NOTHING
-		RETURNING (.+)`).WithArgs(pgx.NamedArgs{
-		"name":        fakeMemeCoin.Name,
-		"description": fakeMemeCoin.Description,
-	}).WillReturnRows(returnRows)
+	sqlStatement := "INSERT INTO meme_coins (name, description) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING RETURNING id, name, description, created_at, popularity_score"
+	repo.mockConnectionPool.ExpectQuery(regexp.QuoteMeta(sqlStatement)).
+		WithArgs(fakeMemeCoin.Name, fakeMemeCoin.Description).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "name", "description", "created_at", "popularity_score"}).
+			AddRow(fakeMemeCoin.Id, fakeMemeCoin.Name, fakeMemeCoin.Description, fakeMemeCoin.CreatedAt, fakeMemeCoin.PopularityScore))
 	memeCoin, err := repo.memeCoinRepository.CreateOne(fakeMemeCoin.Name, fakeMemeCoin.Description)
 	if err != nil {
 		t.Errorf("CreateOne() failed, got error: %v", err)
@@ -109,15 +107,12 @@ func (repo *MemeCoinRepositoryTest) testUpdateOne(t *testing.T) {
 	}
 
 	// Mocking the database connection
-	returnRows := sqlmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	repo.mockConnectionPool.ExpectQuery(`
-		UPDATE meme_coin
-		SET description = @description
-		WHERE id = @id
-		RETURNING (.+)`).WithArgs(pgx.NamedArgs{
-		"id":          fakeMemeCoin.Id,
-		"description": fakeMemeCoin.Description,
-	}).WillReturnRows(returnRows)
+	sqlStatement := "UPDATE meme_coins SET description = $2 WHERE id = $1 RETURNING id, name, description, created_at, popularity_score"
+	repo.mockConnectionPool.ExpectQuery(regexp.QuoteMeta(sqlStatement)).
+		WithArgs(fakeMemeCoin.Id, fakeMemeCoin.Description).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "name", "description", "created_at", "popularity_score"}).
+			AddRow(fakeMemeCoin.Id, fakeMemeCoin.Name, fakeMemeCoin.Description, fakeMemeCoin.CreatedAt, fakeMemeCoin.PopularityScore))
 	memeCoin, err := repo.memeCoinRepository.UpdateOne(fakeMemeCoin.Id, fakeMemeCoin.Description)
 	if err != nil {
 		t.Errorf("UpdateOne() failed, got error: %v", err)
@@ -140,13 +135,12 @@ func (repo *MemeCoinRepositoryTest) testDeleteOne(t *testing.T) {
 	}
 
 	// Mocking the database connection
-	returnRows := sqlmock.NewRows([]string{"row"}).AddRow(fakeMemeCoin)
-	repo.mockConnectionPool.ExpectQuery(`
-		DELETE FROM meme_coin
-		WHERE id = @id
-		RETURNING (.+)`).WithArgs(pgx.NamedArgs{
-		"id": fakeMemeCoin.Id,
-	}).WillReturnRows(returnRows)
+	sqlStatement := "DELETE FROM meme_coins WHERE id = $1 RETURNING id, name, description, created_at, popularity_score"
+	repo.mockConnectionPool.ExpectQuery(regexp.QuoteMeta(sqlStatement)).
+		WithArgs(fakeMemeCoin.Id).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "name", "description", "created_at", "popularity_score"}).
+			AddRow(fakeMemeCoin.Id, fakeMemeCoin.Name, fakeMemeCoin.Description, fakeMemeCoin.CreatedAt, fakeMemeCoin.PopularityScore))
 	memeCoin, err := repo.memeCoinRepository.DeleteOne(fakeMemeCoin.Id)
 	if err != nil {
 		t.Errorf("DeleteOne() failed, got error: %v", err)

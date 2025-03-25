@@ -35,6 +35,7 @@ func main() {
 	redisRepository := repositories.NewRedisCachedRepository(connectionPool, redisClient, repositories.RepositoryConfig{
 		SyncBatchSize: 3,
 		SyncInterval:  5,
+		NeedToSync:    true,
 	})
 
 	// Inject repositories

@@ -41,13 +41,12 @@ type RedisCachedRepository struct {
 	config RepositoryConfig
 	// Channel for tracking coins that need syncing
 	dirtyKeys chan string
-	// Channel for tracking the number of processed meme coins
-	processedMemeCoinCount chan int
 }
 
 type RepositoryConfig struct {
 	SyncBatchSize int
 	SyncInterval  time.Duration
+	NeedToSync    bool
 }
 
 const (

@@ -21,18 +21,24 @@ func NewRedisCachedRepository(db *sql.DB, redis *redis.Client, config Repository
 	}
 
 	repo := &RedisCachedRepository{
-		db:                     db,
-		redis:                  redis,
-		config:                 config,
-		dirtyKeys:              make(chan string, config.SyncBatchSize*2), // Buffer size based on batch size
-		processedMemeCoinCount: make(chan int, 2),
+		db:        db,
+		redis:     redis,
+		config:    config,
+		dirtyKeys: make(chan string, config.SyncBatchSize*2), // Buffer size based on batch size
 	}
 
-	// Sync Redis with the database
-	go repo.syncWithDatabase()
+	if config.NeedToSync {
+		// Sync Redis with the database
+		isDone := make(chan bool)
+		go func() {
+			repo.setDataToRedis()
+			isDone <- true
+		}()
+		<-isDone
 
-	// Start the sync worker to sync Redis with the database
-	repo.startSyncWorker()
+		// Start the sync worker to sync Redis with the database
+		repo.startSyncWorker()
+	}
 
 	return repo
 }
@@ -85,8 +91,6 @@ func (r *RedisCachedRepository) startSyncWorker() {
 					pendingSync = make(map[int]bool)
 					pendingCounts = 0
 				}
-			case memeCoinCount := <-r.processedMemeCoinCount:
-				log.Printf("Processed meme coin count: %d\n", memeCoinCount)
 			}
 
 		}
@@ -124,19 +128,13 @@ func (r *RedisCachedRepository) syncBatch(ids map[int]bool) {
 	}
 }
 
-func (r *RedisCachedRepository) syncWithDatabase() {
-	var memeCoinCount int
-	err := r.db.QueryRow("SELECT COUNT(*) as meme_coin_count FROM meme_coins").Scan(&memeCoinCount)
-	if err != nil {
-		log.Fatalf("Error getting meme coin count: %v\n", err)
-		return
-	}
-
+func (r *RedisCachedRepository) setDataToRedis() {
 	// Fetch all popularity scores from the database
 	var popularityScoreRows []memeCoinPopularityScore
 	const limit = 100
-	for i := range (memeCoinCount / limit) + 1 {
-		rows, err := r.db.Query("SELECT id, popularity_score FROM meme_coins LIMIT $1 OFFSET $2", limit, limit*i)
+	page := 0
+	for {
+		rows, err := r.db.Query("SELECT id, popularity_score FROM meme_coins LIMIT $1 OFFSET $2,", limit, limit*page)
 		if err != nil {
 			log.Fatalf("Error fetching popularity scores: %v\b", err)
 			return
@@ -158,7 +156,11 @@ func (r *RedisCachedRepository) syncWithDatabase() {
 			log.Fatalf("Error setting popularity scores in Redis: %v\n", err)
 			return
 		}
+
+		if len(popularityScoreRows) < limit {
+			break
+		}
+		page++
 	}
 
-	r.processedMemeCoinCount <- memeCoinCount
 }
