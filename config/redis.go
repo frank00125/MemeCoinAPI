@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
@@ -11,8 +10,6 @@ import (
 func NewRedisClient() (*redis.Client, error) {
 	redisHost := viper.GetString("REDIS_HOST")
 	redisPassword := viper.GetString("REDIS_PASSWORD")
-	fmt.Println("redisHost:", redisHost)
-	fmt.Println("redisPassword:", redisPassword)
 
 	client := redis.NewClient(&redis.Options{
 		Addr:     redisHost,

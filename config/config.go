@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path"
 	"strings"
@@ -10,10 +10,9 @@ import (
 )
 
 func init() {
-	fmt.Println("-----------------config-----------------")
-
 	dir, _ := os.Getwd()
 
+	// Set the configuration type and path
 	viper.SetConfigType("env")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AddConfigPath(path.Join(dir, "config"))
@@ -23,11 +22,10 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		panic(err)
 	}
-
-	// Load database configuration if the environment is local
 	env := viper.GetString("SERVICE_ENV")
-	fmt.Println("ENV: ", env)
+	log.Println("SERVICE_ENV: ", env)
 
+	// Load local environment variables via config.env.local
 	if env == "local" {
 		viper.SetConfigName("config.env.local")
 		if err := viper.MergeInConfig(); err != nil {
@@ -38,5 +36,4 @@ func init() {
 	// Automatically bind environment variables
 	viper.AutomaticEnv()
 
-	fmt.Println("-----------------config-----------------")
 }

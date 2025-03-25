@@ -15,6 +15,11 @@ type MemeCoin struct {
 	PopularityScore int       `db:"popularity_score" json:"popularity_score"`
 }
 
+type memeCoinPopularityScore struct {
+	Id              int `db:"id" json:"id"`
+	PopularityScore int `db:"popularity_score" json:"popularity_score"`
+}
+
 type MemeCoinRepositoryInterface interface {
 	FindOne(id int) (*MemeCoin, error)
 	CreateOne(name string, description string) (*MemeCoin, error)
@@ -27,7 +32,7 @@ type MemeCoinRepository struct {
 }
 
 type RedisRepositoryInterface interface {
-	IncrementPopularity(id int) error
+	IncrementPopularityScore(id int) error
 }
 
 type RedisCachedRepository struct {
@@ -36,12 +41,13 @@ type RedisCachedRepository struct {
 	config RepositoryConfig
 	// Channel for tracking coins that need syncing
 	dirtyKeys chan string
+	// Channel for tracking the number of processed meme coins
+	processedMemeCoinCount chan int
 }
 
 type RepositoryConfig struct {
 	SyncBatchSize int
 	SyncInterval  time.Duration
-	// Other config options
 }
 
 const (

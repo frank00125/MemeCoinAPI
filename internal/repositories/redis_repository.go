@@ -21,17 +21,23 @@ func NewRedisCachedRepository(db *sql.DB, redis *redis.Client, config Repository
 	}
 
 	repo := &RedisCachedRepository{
-		db:        db,
-		redis:     redis,
-		config:    config,
-		dirtyKeys: make(chan string, config.SyncBatchSize*2), // Buffer size based on batch size
+		db:                     db,
+		redis:                  redis,
+		config:                 config,
+		dirtyKeys:              make(chan string, config.SyncBatchSize*2), // Buffer size based on batch size
+		processedMemeCoinCount: make(chan int, 2),
 	}
 
+	// Sync Redis with the database
+	go repo.syncWithDatabase()
+
+	// Start the sync worker to sync Redis with the database
 	repo.startSyncWorker()
+
 	return repo
 }
 
-func (r *RedisCachedRepository) IncrementPopularity(id int) error {
+func (r *RedisCachedRepository) IncrementPopularityScore(id int) error {
 	// Atomic increment in Redis
 	_, err := r.redis.IncrBy(context.Background(),
 		fmt.Sprintf("meme:popularity_score:%d", id), 1).Result()
@@ -79,7 +85,10 @@ func (r *RedisCachedRepository) startSyncWorker() {
 					pendingSync = make(map[int]bool)
 					pendingCounts = 0
 				}
+			case memeCoinCount := <-r.processedMemeCoinCount:
+				log.Printf("Processed meme coin count: %d\n", memeCoinCount)
 			}
+
 		}
 	}()
 }
@@ -113,4 +122,43 @@ func (r *RedisCachedRepository) syncBatch(ids map[int]bool) {
 		log.Printf("Error committing transaction: %v", err)
 		tx.Rollback()
 	}
+}
+
+func (r *RedisCachedRepository) syncWithDatabase() {
+	var memeCoinCount int
+	err := r.db.QueryRow("SELECT COUNT(*) as meme_coin_count FROM meme_coins").Scan(&memeCoinCount)
+	if err != nil {
+		log.Fatalf("Error getting meme coin count: %v\n", err)
+		return
+	}
+
+	// Fetch all popularity scores from the database
+	var popularityScoreRows []memeCoinPopularityScore
+	const limit = 100
+	for i := range (memeCoinCount / limit) + 1 {
+		rows, err := r.db.Query("SELECT id, popularity_score FROM meme_coins LIMIT $1 OFFSET $2", limit, limit*i)
+		if err != nil {
+			log.Fatalf("Error fetching popularity scores: %v\b", err)
+			return
+		}
+
+		for rows.Next() {
+			var popularityScoreRow memeCoinPopularityScore
+			rows.Scan(&popularityScoreRow.Id, &popularityScoreRow.PopularityScore)
+			popularityScoreRows = append(popularityScoreRows, popularityScoreRow)
+		}
+
+		ctx := context.Background()
+		pipe := r.redis.Pipeline()
+		for _, row := range popularityScoreRows {
+			pipe.Set(ctx, fmt.Sprintf("meme:popularity_score:%d", row.Id), row.PopularityScore, 0)
+		}
+		_, err = pipe.Exec(ctx)
+		if err != nil {
+			log.Fatalf("Error setting popularity scores in Redis: %v\n", err)
+			return
+		}
+	}
+
+	r.processedMemeCoinCount <- memeCoinCount
 }
