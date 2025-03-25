@@ -37,6 +37,7 @@ func TestRedisCachedRepository(t *testing.T) {
 	}
 
 	t.Run("IncrementMemeCoinPopularityScore", redisCachedRepositoryTest.testIncrementMemeCoinPopularityScore)
+	t.Run("RemoveMemeCoinPopularityScore", redisCachedRepositoryTest.testRemoveMemeCoinPopularityScore)
 }
 
 func (repo *RedisCachedRepositoryTest) testIncrementMemeCoinPopularityScore(t *testing.T) {
@@ -48,6 +49,24 @@ func (repo *RedisCachedRepositoryTest) testIncrementMemeCoinPopularityScore(t *t
 	err := repo.redisCachedRepository.IncrementPopularityScore(memeCoinId)
 	if err != nil {
 		t.Errorf("IncrementMemeCoinPopularityScore() failed, got error: %v", err)
+	}
+
+	err = repo.redismock.ExpectationsWereMet()
+	assert.NoError(t, err)
+
+	err = repo.dbmock.ExpectationsWereMet()
+	assert.NoError(t, err)
+}
+
+func (repo *RedisCachedRepositoryTest) testRemoveMemeCoinPopularityScore(t *testing.T) {
+	memeCoinId := 10
+	key := "meme:popularity_score:" + strconv.Itoa(memeCoinId)
+
+	repo.redismock.ExpectDel(key).SetVal(1)
+
+	err := repo.redisCachedRepository.RemovePopularityScore(memeCoinId)
+	if err != nil {
+		t.Errorf("RemoveMemeCoinPopularityScore() failed, got error: %v", err)
 	}
 
 	err = repo.redismock.ExpectationsWereMet()

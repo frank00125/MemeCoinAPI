@@ -24,8 +24,18 @@ func (service *MemeCoinService) UpdateMemeCoin(id int, description string) (*rep
 }
 
 func (service *MemeCoinService) DeleteMemeCoin(id int) (*repositories.MemeCoin, error) {
+	// Delete popularity_score at redis
+	err := service.redis.RemovePopularityScore(id)
+	if err != nil {
+		return nil, err
+	}
 
-	return service.repo.DeleteOne(id)
+	deletedMemeCoin, err := service.repo.DeleteOne(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return deletedMemeCoin, nil
 }
 
 func (service *MemeCoinService) PokeMemeCoin(id int) error {

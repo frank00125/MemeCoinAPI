@@ -33,6 +33,7 @@ type MemeCoinRepository struct {
 
 type RedisRepositoryInterface interface {
 	IncrementPopularityScore(id int) error
+	RemovePopularityScore(id int) error
 }
 
 type RedisCachedRepository struct {

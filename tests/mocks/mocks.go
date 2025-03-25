@@ -80,3 +80,11 @@ func (m *MockRedisCachedRepository) IncrementPopularityScore(id int) error {
 
 	return nil
 }
+
+func (m *MockRedisCachedRepository) RemovePopularityScore(id int) error {
+	if id == 0 {
+		return errors.New("invalid ID")
+	}
+
+	return nil
+}

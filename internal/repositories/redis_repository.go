@@ -62,6 +62,15 @@ func (r *RedisCachedRepository) IncrementPopularityScore(id int) error {
 	return nil
 }
 
+func (r *RedisCachedRepository) RemovePopularityScore(id int) error {
+	_, err := r.redis.Del(context.Background(), fmt.Sprintf("meme:popularity_score:%d", id)).Result()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *RedisCachedRepository) startSyncWorker() {
 	ticker := time.NewTicker(r.config.SyncInterval)
 	pendingCounts := 0
