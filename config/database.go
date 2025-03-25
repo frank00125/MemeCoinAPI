@@ -23,5 +23,11 @@ func NewDatabaseConnectionPool() (*sql.DB, error) {
 	db.SetConnMaxLifetime(5 * time.Minute)
 	db.SetConnMaxIdleTime(5 * time.Minute)
 
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("error pinging database: %v", err)
+		return nil, err
+	}
+
 	return db, nil
 }
