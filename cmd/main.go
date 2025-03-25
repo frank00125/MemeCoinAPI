@@ -3,6 +3,7 @@ package main
 import (
 	_ "portto-assignment/api"
 	"portto-assignment/config"
+	"portto-assignment/database/seeds"
 	"portto-assignment/internal/handlers"
 	"portto-assignment/internal/repositories"
 	"portto-assignment/internal/routes"
@@ -29,6 +30,9 @@ func main() {
 		panic(err)
 	}
 	defer redisClient.Close()
+
+	// Seed database
+	seeds.Seeds(connectionPool)
 
 	// Inject database connection pools
 	memeCoinRepository := repositories.NewMemeCoinRepository(connectionPool)

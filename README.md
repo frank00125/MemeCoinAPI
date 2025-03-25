@@ -104,28 +104,15 @@ cat .env.example > .env
 # Set up local directory to put the database files
 mkdir docker-database
 
-# Start docker compose at the background
-docker compose up -d
-
 # Setup the env for application
 # You need to fill in the environment variables to ./config/config.env.local file
 cat ./config/config.env.example > ./config/config.env.local
 
-# Database seeding
-go run ./scripts/seeds.go
-
-# Start the project
-go run ./cmd/main.go
+# Start docker compose at the background (including the API itself)
+docker compose up -d
 ```
 
 ## Usage
-
-於 local 環境啟動 dev server
-
-```bash
-# Start the dev server
-go run ./cmd/main.go
-```
 
 執行單元測試
 
