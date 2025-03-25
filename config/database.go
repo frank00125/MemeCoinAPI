@@ -10,7 +10,7 @@ import (
 )
 
 func NewDatabaseConnectionPool() (*sql.DB, error) {
-	connectionString := viper.GetString("POSTGRESQL_URL")
+	connectionString := viper.GetString("DATABASE_URL")
 
 	db, err := sql.Open("pgx", connectionString)
 	if err != nil {

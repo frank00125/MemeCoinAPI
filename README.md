@@ -54,7 +54,7 @@ Application 本身需要以下設定：
 
 | Environment variables | 說明                                            |
 | --------------------- | ----------------------------------------------- |
-| `POSTGRESQL_URL`      | Application 使用的 PostgreSQL connection string |
+| `DATABASE_URL`        | Application 使用的 PostgreSQL connection string |
 | `REDIS_URL`           | Application 使用的 Redis connection string      |
 
 ### 環境設定方式
@@ -80,7 +80,7 @@ REDIS_PASSWORD="redispass123"
 `./config/config.env.local`
 
 ```env
-POSTGRESQL_URL="postgresql://admin:password123@localhost:5432/myapp"
+DATABASE_URL="postgresql://admin:password123@localhost:5432/myapp"
 REDIS_URL="redis://redispass123@localhost:6379/0?protocol=3"
 
 ```
