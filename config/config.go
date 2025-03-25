@@ -12,16 +12,15 @@ import (
 func init() {
 	dir, _ := os.Getwd()
 
+	// Automatically bind environment variables
+	viper.AutomaticEnv()
+
 	// Set the configuration type and path
 	viper.SetConfigType("env")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AddConfigPath(path.Join(dir, "config"))
+	viper.ReadInConfig()
 
-	// Load environment variables from config.env
-	viper.SetConfigName("config.env")
-	if err := viper.ReadInConfig(); err != nil {
-		panic(err)
-	}
 	env := viper.GetString("SERVICE_ENV")
 	if env == "" {
 		env = "local"
@@ -35,8 +34,5 @@ func init() {
 			panic(err)
 		}
 	}
-
-	// Automatically bind environment variables
-	viper.AutomaticEnv()
 
 }
