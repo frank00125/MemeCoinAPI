@@ -43,7 +43,7 @@ type RedisCachedRepository struct {
 	redis  *redis.Client
 	config RepositoryConfig
 	// Channel for tracking coins that need syncing
-	dirtyKeys chan string
+	syncKeys chan string
 }
 
 type RepositoryConfig struct {

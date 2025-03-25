@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -21,10 +22,10 @@ func NewRedisCachedRepository(db *sql.DB, redis *redis.Client, config Repository
 	}
 
 	repo := &RedisCachedRepository{
-		db:        db,
-		redis:     redis,
-		config:    config,
-		dirtyKeys: make(chan string, config.SyncBatchSize*2), // Buffer size based on batch size
+		db:       db,
+		redis:    redis,
+		config:   config,
+		syncKeys: make(chan string, config.SyncBatchSize*2), // Buffer size based on batch size
 	}
 
 	if config.NeedToSync {
@@ -50,7 +51,7 @@ func (r *RedisCachedRepository) IncrBy(key string, increment int) error {
 	}
 
 	// Add the key to the dirty keys channel
-	r.dirtyKeys <- key
+	r.syncKeys <- key
 
 	return nil
 }
@@ -87,22 +88,21 @@ func (r *RedisCachedRepository) Exists(key string) (bool, error) {
 func (r *RedisCachedRepository) startPopularityScoreSyncWorker() {
 	ticker := time.NewTicker(r.config.SyncInterval)
 	pendingCounts := 0
-	pendingSync := make(map[int]bool) // Just tracking which IDs need sync
+	pendingSync := make(map[string]bool) // Just tracking which IDs need sync
 
 	go func() {
 		for {
 			select {
-			case id := <-r.dirtyKeys:
-				idNum, _ := strconv.Atoi(id)
-				if !pendingSync[idNum] {
-					pendingSync[idNum] = true
+			case key := <-r.syncKeys:
+				if !pendingSync[key] {
+					pendingSync[key] = true
 					pendingCounts++
 				}
 
 				// If we have enough pending items, trigger a sync
 				if pendingCounts >= r.config.SyncBatchSize {
 					r.syncPopularityScoreBatch(pendingSync)
-					pendingSync = make(map[int]bool)
+					pendingSync = make(map[string]bool)
 					pendingCounts = 0
 				}
 
@@ -110,7 +110,7 @@ func (r *RedisCachedRepository) startPopularityScoreSyncWorker() {
 				// Time-based sync for any remaining items
 				if pendingCounts > 0 {
 					r.syncPopularityScoreBatch(pendingSync)
-					pendingSync = make(map[int]bool)
+					pendingSync = make(map[string]bool)
 					pendingCounts = 0
 				}
 			}
@@ -119,7 +119,7 @@ func (r *RedisCachedRepository) startPopularityScoreSyncWorker() {
 	}()
 }
 
-func (r *RedisCachedRepository) syncPopularityScoreBatch(ids map[int]bool) {
+func (r *RedisCachedRepository) syncPopularityScoreBatch(keysExistMap map[string]bool) {
 	// Start a transaction
 	ctx := context.Background()
 	tx, err := r.db.Begin()
@@ -128,19 +128,23 @@ func (r *RedisCachedRepository) syncPopularityScoreBatch(ids map[int]bool) {
 		return
 	}
 
-	for id := range ids {
+	keys := []string{}
+	for key := range keysExistMap {
 		// Get current score from Redis - this will include ALL increments that have happened
-		scoreKey := fmt.Sprintf("meme:popularity_score:%d", id)
-		score, err := r.redis.Get(context.Background(), scoreKey).Int()
+		score, err := r.redis.Get(context.Background(), key).Int()
 		if err != nil {
 			continue
 		}
 
 		// Update database with the accurate count from Redis
+		tokens := strings.Split(key, ":")
+		id, _ := strconv.Atoi(tokens[len(tokens)-1])
 		_, err = tx.ExecContext(ctx, "UPDATE meme_coins SET popularity_score = $2 WHERE id = $1", id, score)
 		if err != nil {
-			log.Printf("Error updating score for %d: %v", id, err)
+			log.Printf("Error updating score for %s: %v", key, err)
 		}
+
+		keys = append(keys, key)
 	}
 
 	// Commit transaction
@@ -150,7 +154,7 @@ func (r *RedisCachedRepository) syncPopularityScoreBatch(ids map[int]bool) {
 	}
 
 	// Log the sync
-	log.Printf("Synced keys: %v", ids)
+	log.Printf("Synced keys: %v", keys)
 }
 
 func (r *RedisCachedRepository) setPopularityScoreToRedis() {
