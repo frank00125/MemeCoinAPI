@@ -8,16 +8,15 @@ import (
 )
 
 func NewRedisClient() (*redis.Client, error) {
-	redisHost := viper.GetString("REDIS_HOST")
-	redisPassword := viper.GetString("REDIS_PASSWORD")
+	redisUrl := viper.GetString("REDIS_URL")
+	opts, err := redis.ParseURL(redisUrl)
+	if err != nil {
+		return nil, err
+	}
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     redisHost,
-		Password: redisPassword,
-		DB:       0,
-	})
+	client := redis.NewClient(opts)
 
-	_, err := client.Ping(context.Background()).Result()
+	_, err = client.Ping(context.Background()).Result()
 	if err != nil {
 		return nil, err
 	}
