@@ -10,7 +10,7 @@
 ## File Structure
 
 ```
-/portto-assignment
+/MemeCoinAPI
 ├── api/
 ├── assets/
 │   └── sql/
@@ -89,10 +89,10 @@ REDIS_URL="redis://redispass123@localhost:6379/0?protocol=3"
 
 ```bash
 # Clone the repository
-git clone https://github.com/frank00125/portto-assignment.git
+git clone https://github.com/frank00125/MemeCoinAPI.git
 
 # Navigate to the project directory
-cd portto-assignment
+cd MemeCoinAPI
 
 # Install dependencies
 go get
