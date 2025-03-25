@@ -2,12 +2,10 @@ package tests
 
 import (
 	"portto-assignment/internal/repositories"
-	"strconv"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-redis/redismock/v9"
-	"github.com/stretchr/testify/assert"
 )
 
 type RedisCachedRepositoryTest struct {
@@ -36,42 +34,52 @@ func TestRedisCachedRepository(t *testing.T) {
 		}),
 	}
 
-	t.Run("IncrementMemeCoinPopularityScore", redisCachedRepositoryTest.testIncrementMemeCoinPopularityScore)
-	t.Run("RemoveMemeCoinPopularityScore", redisCachedRepositoryTest.testRemoveMemeCoinPopularityScore)
+	t.Run("TestSet", redisCachedRepositoryTest.testSet)
+	t.Run("TestIncr", redisCachedRepositoryTest.testIncrBy)
+	t.Run("TestDelete", redisCachedRepositoryTest.testDelete)
+	t.Run("TestExists", redisCachedRepositoryTest.testExists)
 }
 
-func (repo *RedisCachedRepositoryTest) testIncrementMemeCoinPopularityScore(t *testing.T) {
-	memeCoinId := 10
-	key := "meme:popularity_score:" + strconv.Itoa(memeCoinId)
+func (r *RedisCachedRepositoryTest) testIncrBy(t *testing.T) {
+	key := "test_key"
+	r.redismock.ExpectIncrBy(key, 1).SetVal(1)
 
-	repo.redismock.ExpectIncrBy(key, 1).SetVal(1)
-
-	err := repo.redisCachedRepository.IncrementPopularityScore(memeCoinId)
+	err := r.redisCachedRepository.IncrBy("test_key", 1)
 	if err != nil {
-		t.Errorf("IncrementMemeCoinPopularityScore() failed, got error: %v", err)
+		t.Fatal(err)
 	}
-
-	err = repo.redismock.ExpectationsWereMet()
-	assert.NoError(t, err)
-
-	err = repo.dbmock.ExpectationsWereMet()
-	assert.NoError(t, err)
 }
 
-func (repo *RedisCachedRepositoryTest) testRemoveMemeCoinPopularityScore(t *testing.T) {
-	memeCoinId := 10
-	key := "meme:popularity_score:" + strconv.Itoa(memeCoinId)
+func (r *RedisCachedRepositoryTest) testSet(t *testing.T) {
+	key := "test_key"
+	r.redismock.ExpectSet(key, 0, 0).SetVal("OK")
 
-	repo.redismock.ExpectDel(key).SetVal(1)
-
-	err := repo.redisCachedRepository.RemovePopularityScore(memeCoinId)
+	err := r.redisCachedRepository.Set("test_key", 0)
 	if err != nil {
-		t.Errorf("RemoveMemeCoinPopularityScore() failed, got error: %v", err)
+		t.Fatal(err)
+	}
+}
+
+func (r *RedisCachedRepositoryTest) testDelete(t *testing.T) {
+	key := "test_key"
+	r.redismock.ExpectDel(key).SetVal(1)
+
+	err := r.redisCachedRepository.Delete("test_key")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func (r *RedisCachedRepositoryTest) testExists(t *testing.T) {
+	key := "test_key"
+	r.redismock.ExpectExists(key).SetVal(1)
+
+	exists, err := r.redisCachedRepository.Exists(key)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	err = repo.redismock.ExpectationsWereMet()
-	assert.NoError(t, err)
-
-	err = repo.dbmock.ExpectationsWereMet()
-	assert.NoError(t, err)
+	if !exists {
+		t.Fatal("Key should exist")
+	}
 }

@@ -35,7 +35,7 @@ func testCreateMemeCoin(t *testing.T) {
 	})
 	timeAfterExecute := time.Now()
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, memeCoin)
 	assert.Greater(t, memeCoin.Id, 0)
 	assert.Less(t, memeCoin.PopularityScore, 100)
@@ -50,7 +50,7 @@ func testCreateMemeCoin(t *testing.T) {
 func testGetMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	memeCoin, err := memeCoinService.GetMemeCoin(0)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, memeCoin)
 
 	// Test case 2: id is valid
@@ -58,7 +58,7 @@ func testGetMemeCoin(t *testing.T) {
 	memeCoin, err = memeCoinService.GetMemeCoin(1)
 	timeAfterExecute := time.Now()
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, memeCoin)
 	assert.Greater(t, memeCoin.Id, 0)
 	assert.Less(t, memeCoin.PopularityScore, 100)
@@ -73,7 +73,7 @@ func testGetMemeCoin(t *testing.T) {
 func testUpdateMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	memeCoin, err := memeCoinService.UpdateMemeCoin(0, "new description")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, memeCoin)
 
 	// Test case 2: id is valid
@@ -81,7 +81,7 @@ func testUpdateMemeCoin(t *testing.T) {
 	memeCoin, err = memeCoinService.UpdateMemeCoin(1, "new description")
 	timeAfterExecute := time.Now()
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, memeCoin)
 	assert.Greater(t, memeCoin.Id, 0)
 	assert.Less(t, memeCoin.PopularityScore, 100)
@@ -96,7 +96,7 @@ func testUpdateMemeCoin(t *testing.T) {
 func testDeleteMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	memeCoin, err := memeCoinService.DeleteMemeCoin(0)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, memeCoin)
 
 	// Test case 2: id is valid
@@ -104,7 +104,7 @@ func testDeleteMemeCoin(t *testing.T) {
 	memeCoin, err = memeCoinService.DeleteMemeCoin(1)
 	timeAfterExecute := time.Now()
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, memeCoin)
 	assert.Greater(t, memeCoin.Id, 0)
 	assert.Less(t, memeCoin.PopularityScore, 100)
@@ -119,9 +119,9 @@ func testDeleteMemeCoin(t *testing.T) {
 func testPokeMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
 	err := memeCoinService.PokeMemeCoin(0)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// Test case 2: id is valid
 	err = memeCoinService.PokeMemeCoin(1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }

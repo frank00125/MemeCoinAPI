@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"portto-assignment/internal/repositories"
 	"time"
@@ -73,18 +74,31 @@ func (m *MockMemeCoinRepository) getFakeMemeCoin() repositories.MemeCoin {
 	}
 }
 
-func (m *MockRedisCachedRepository) IncrementPopularityScore(id int) error {
-	if id == 0 {
-		return errors.New("invalid ID")
+func (m *MockRedisCachedRepository) IncrBy(key string, increment int) error {
+	if key == fmt.Sprintf("meme:popularity_score:%d", 0) {
+		return fmt.Errorf("key %s does not exist", key)
 	}
-
 	return nil
 }
 
-func (m *MockRedisCachedRepository) RemovePopularityScore(id int) error {
-	if id == 0 {
-		return errors.New("invalid ID")
+func (m *MockRedisCachedRepository) Set(key string, value int) error {
+	if key == fmt.Sprintf("meme:popularity_score:%d", 0) {
+		return fmt.Errorf("key %s does not exist", key)
+	}
+	return nil
+}
+
+func (m *MockRedisCachedRepository) Delete(key string) error {
+	if key == fmt.Sprintf("meme:popularity_score:%d", 0) {
+		return fmt.Errorf("key %s does not exist", key)
+	}
+	return nil
+}
+
+func (m *MockRedisCachedRepository) Exists(key string) (bool, error) {
+	if key == fmt.Sprintf("meme:popularity_score:%d", 0) {
+		return false, nil
 	}
 
-	return nil
+	return true, nil
 }

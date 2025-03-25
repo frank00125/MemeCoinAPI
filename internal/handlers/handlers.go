@@ -59,6 +59,7 @@ func (handler *MemeCoinHandler) CreateMemeCoin(context *gin.Context) {
 	if newMemeCoin == nil {
 		context.JSON(http.StatusConflict, HttpError{
 			Message: "MemeCoin already exists",
+			Error:   "MemeCoin with the same name already exists",
 		})
 		return
 	}
@@ -104,6 +105,7 @@ func (handler *MemeCoinHandler) GetMemeCoin(context *gin.Context) {
 	if memeCoin == nil {
 		context.JSON(http.StatusNotFound, HttpError{
 			Message: "MemeCoin not found",
+			Error:   "MemeCoin with the given ID does not exist",
 		})
 		return
 	}
@@ -153,6 +155,7 @@ func (handler *MemeCoinHandler) UpdateMemeCoin(context *gin.Context) {
 	if updatedMemeCoin == nil {
 		context.JSON(http.StatusNotFound, HttpError{
 			Message: "MemeCoin not found",
+			Error:   "MemeCoin with the given ID does not exist",
 		})
 		return
 	}
@@ -205,6 +208,7 @@ func (handler *MemeCoinHandler) DeleteMemeCoin(context *gin.Context) {
 	if deletedMemeCoin == nil {
 		context.JSON(http.StatusNotFound, HttpError{
 			Message: "MemeCoin not found",
+			Error:   "MemeCoin with the given ID does not exist",
 		})
 		return
 	}
@@ -239,6 +243,13 @@ func (handler *MemeCoinHandler) PokeMemeCoin(context *gin.Context) {
 
 	id := reqBody.Id
 	err = handler.service.PokeMemeCoin(id)
+	if err != nil && err.Error() == "no such meme coin" {
+		context.JSON(http.StatusNotFound, HttpError{
+			Message: "MemeCoin not found",
+			Error:   "MemeCoin with the given ID does not exist",
+		})
+		return
+	}
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",

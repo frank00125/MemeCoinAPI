@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+	"fmt"
 	"portto-assignment/internal/repositories"
 )
 
@@ -12,7 +14,16 @@ func NewMemeCoinService(memeCoinRepository repositories.MemeCoinRepositoryInterf
 }
 
 func (service *MemeCoinService) CreateMemeCoin(input CreateMemeCoinInput) (*repositories.MemeCoin, error) {
-	return service.repo.CreateOne(input.Name, input.Description)
+	memeCoin, err := service.repo.CreateOne(input.Name, input.Description)
+	if err != nil {
+		return nil, err
+	}
+	err = service.redis.Set(service.getMemeCoinPopularityScoreKey(memeCoin.Id), memeCoin.PopularityScore)
+	if err != nil {
+		return nil, err
+	}
+
+	return memeCoin, nil
 }
 
 func (service *MemeCoinService) GetMemeCoin(id int) (*repositories.MemeCoin, error) {
@@ -25,7 +36,7 @@ func (service *MemeCoinService) UpdateMemeCoin(id int, description string) (*rep
 
 func (service *MemeCoinService) DeleteMemeCoin(id int) (*repositories.MemeCoin, error) {
 	// Delete popularity_score at redis
-	err := service.redis.RemovePopularityScore(id)
+	err := service.redis.Delete(service.getMemeCoinPopularityScoreKey(id))
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +50,20 @@ func (service *MemeCoinService) DeleteMemeCoin(id int) (*repositories.MemeCoin, 
 }
 
 func (service *MemeCoinService) PokeMemeCoin(id int) error {
+	// Check if meme coin exists in Redis
+	exist, err := service.redis.Exists(service.getMemeCoinPopularityScoreKey(id))
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return errors.New("no such meme coin")
+	}
+
 	// Increment popularity_score at redis
-	return service.redis.IncrementPopularityScore(id)
+	return service.redis.IncrBy(service.getMemeCoinPopularityScoreKey(id), 1)
+}
+
+func (service *MemeCoinService) getMemeCoinPopularityScoreKey(id int) string {
+	return fmt.Sprintf("meme:popularity_score:%d", id)
 }

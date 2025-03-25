@@ -31,39 +31,32 @@ func NewRedisCachedRepository(db *sql.DB, redis *redis.Client, config Repository
 		// Sync Redis with the database
 		isDone := make(chan bool)
 		go func() {
-			repo.setDataToRedis()
+			repo.setPopularityScoreToRedis()
 			isDone <- true
 		}()
 		<-isDone
 
 		// Start the sync worker to sync Redis with the database
-		repo.startSyncWorker()
+		repo.startPopularityScoreSyncWorker()
 	}
 
 	return repo
 }
 
-func (r *RedisCachedRepository) IncrementPopularityScore(id int) error {
-	// Atomic increment in Redis
-	_, err := r.redis.IncrBy(context.Background(),
-		fmt.Sprintf("meme:popularity_score:%d", id), 1).Result()
+func (r *RedisCachedRepository) IncrBy(key string, increment int) error {
+	_, err := r.redis.IncrBy(context.Background(), key, int64(increment)).Result()
 	if err != nil {
 		return err
 	}
 
-	// Signal that this key needs to be synced
-	select {
-	case r.dirtyKeys <- strconv.Itoa(id):
-		// Key queued for sync
-	default:
-		// Channel full, key will be synced on next cycle
-	}
+	// Add the key to the dirty keys channel
+	r.dirtyKeys <- key
 
 	return nil
 }
 
-func (r *RedisCachedRepository) RemovePopularityScore(id int) error {
-	_, err := r.redis.Del(context.Background(), fmt.Sprintf("meme:popularity_score:%d", id)).Result()
+func (r *RedisCachedRepository) Set(key string, value int) error {
+	_, err := r.redis.Set(context.Background(), key, value, 0).Result()
 	if err != nil {
 		return err
 	}
@@ -71,7 +64,27 @@ func (r *RedisCachedRepository) RemovePopularityScore(id int) error {
 	return nil
 }
 
-func (r *RedisCachedRepository) startSyncWorker() {
+func (r *RedisCachedRepository) Delete(key string) error {
+	_, err := r.redis.Del(context.Background(), key).Result()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *RedisCachedRepository) Exists(key string) (bool, error) {
+	log.Printf("Checking key: %s", key)
+	count, err := r.redis.Exists(context.Background(), key).Result()
+	if err != nil {
+		return false, err
+	}
+	log.Printf("Count: %d", count)
+
+	return count > 0, nil
+}
+
+func (r *RedisCachedRepository) startPopularityScoreSyncWorker() {
 	ticker := time.NewTicker(r.config.SyncInterval)
 	pendingCounts := 0
 	pendingSync := make(map[int]bool) // Just tracking which IDs need sync
@@ -88,7 +101,7 @@ func (r *RedisCachedRepository) startSyncWorker() {
 
 				// If we have enough pending items, trigger a sync
 				if pendingCounts >= r.config.SyncBatchSize {
-					r.syncBatch(pendingSync)
+					r.syncPopularityScoreBatch(pendingSync)
 					pendingSync = make(map[int]bool)
 					pendingCounts = 0
 				}
@@ -96,7 +109,7 @@ func (r *RedisCachedRepository) startSyncWorker() {
 			case <-ticker.C:
 				// Time-based sync for any remaining items
 				if pendingCounts > 0 {
-					r.syncBatch(pendingSync)
+					r.syncPopularityScoreBatch(pendingSync)
 					pendingSync = make(map[int]bool)
 					pendingCounts = 0
 				}
@@ -106,7 +119,7 @@ func (r *RedisCachedRepository) startSyncWorker() {
 	}()
 }
 
-func (r *RedisCachedRepository) syncBatch(ids map[int]bool) {
+func (r *RedisCachedRepository) syncPopularityScoreBatch(ids map[int]bool) {
 	// Start a transaction
 	ctx := context.Background()
 	tx, err := r.db.Begin()
@@ -140,7 +153,7 @@ func (r *RedisCachedRepository) syncBatch(ids map[int]bool) {
 	log.Printf("Synced keys: %v", ids)
 }
 
-func (r *RedisCachedRepository) setDataToRedis() {
+func (r *RedisCachedRepository) setPopularityScoreToRedis() {
 	// Fetch all popularity scores from the database
 	var popularityScoreRows []memeCoinPopularityScore
 	const limit = 100
