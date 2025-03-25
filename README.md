@@ -2,11 +2,10 @@
 
 ## Table of Contents
 
-- [Project Structure](#project-structure)
+- [File Structure](#file-structure)
 - [Environment Variables](#environment-variables)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Docker](#docker)
 
 ## File Structure
 
@@ -47,6 +46,7 @@
 | `POSTGRES_USER`       | PostgreSQL 初始化用戶名     |
 | `POSTGRES_PASSWORD`   | PostgreSQL 初始化密碼       |
 | `POSTGRES_DB`         | PostgreSQL 初始化數據庫名稱 |
+| `REDIS_PASSWORD`      | Redis 初始化密碼            |
 
 ### Application
 
@@ -54,36 +54,35 @@ Application 本身需要以下設定：
 
 | Environment variables | 說明                                            |
 | --------------------- | ----------------------------------------------- |
-| `SERVICE_ENV`         | 服務運行的環境。本地開發時設為 `"local"`        |
 | `POSTGRESQL_URL`      | Application 使用的 PostgreSQL connection string |
+| `REDIS_URL`           | Application 使用的 Redis connection string      |
 
 ### 環境設定方式
 
-- **本地開發環境**：使用 `./config` 中的 `config.env`
+- **本地開發環境**：使用 `./config` 中的 `config.env.local`
 - **其他環境**：需手動設定
 
 ### Example
 
 #### Docker Compose PostgreSQL 配置
 
+`./.env`
+
 ```env
 POSTGRES_USER="admin"
 POSTGRES_PASSWORD="password123"
 POSTGRES_DB="myapp"
+REDIS_PASSWORD="redispass123"
 ```
 
 #### 應用程式配置
 
-`config.env`
-
-```env
-SERVICE_ENV="local"
-```
-
-`config.env.local`
+`./config/config.env.local`
 
 ```env
 POSTGRESQL_URL="postgresql://admin:password123@localhost:5432/myapp"
+REDIS_URL="redis://redispass123@localhost:6379/0?protocol=3"
+
 ```
 
 ## Installation
@@ -109,14 +108,14 @@ mkdir docker-database
 docker compose up -d
 
 # Setup the env for application
-# You need to fill in the environment variables to ./config/config.env file
-cat ./config/config.env.example > ./config/config.env
+# You need to fill in the environment variables to ./config/config.env.local file
+cat ./config/config.env.example > ./config/config.env.local
 
 # Database seeding
-go run seeds/seeds.go
+go run ./seeds/seeds.go
 
 # Start the project
-go run cmd/main.go
+go run ./cmd/main.go
 ```
 
 ## Usage
@@ -125,7 +124,7 @@ go run cmd/main.go
 
 ```bash
 # Start the dev server
-go run main.go
+go run ./cmd/main.go
 ```
 
 執行單元測試
