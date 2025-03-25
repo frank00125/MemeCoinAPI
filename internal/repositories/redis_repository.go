@@ -134,7 +134,7 @@ func (r *RedisCachedRepository) setDataToRedis() {
 	const limit = 100
 	page := 0
 	for {
-		rows, err := r.db.Query("SELECT id, popularity_score FROM meme_coins LIMIT $1 OFFSET $2,", limit, limit*page)
+		rows, err := r.db.Query("SELECT id, popularity_score FROM meme_coins LIMIT $1 OFFSET $2", limit, limit*page)
 		if err != nil {
 			log.Fatalf("Error fetching popularity scores: %v\b", err)
 			return
