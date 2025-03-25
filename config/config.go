@@ -23,6 +23,9 @@ func init() {
 		panic(err)
 	}
 	env := viper.GetString("SERVICE_ENV")
+	if env == "" {
+		env = "local"
+	}
 	log.Println("SERVICE_ENV: ", env)
 
 	// Load local environment variables via config.env.local
