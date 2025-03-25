@@ -48,7 +48,7 @@ func (handler *MemeCoinHandler) CreateMemeCoin(context *gin.Context) {
 		Description: description,
 	})
 	if err != nil {
-		log.Fatalf("Failed to create meme coin: %v", err)
+		log.Printf("Failed to create meme coin: %v", err)
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",
 			Error:   err.Error(),

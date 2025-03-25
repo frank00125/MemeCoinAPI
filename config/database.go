@@ -14,7 +14,7 @@ func NewDatabaseConnectionPool() (*sql.DB, error) {
 
 	db, err := sql.Open("pgx", connectionString)
 	if err != nil {
-		log.Fatalf("error connecting to database: %v", err)
+		log.Printf("error connecting to database: %v", err)
 		return nil, err
 	}
 
@@ -25,7 +25,7 @@ func NewDatabaseConnectionPool() (*sql.DB, error) {
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("error pinging database: %v", err)
+		log.Printf("error pinging database: %v", err)
 		return nil, err
 	}
 

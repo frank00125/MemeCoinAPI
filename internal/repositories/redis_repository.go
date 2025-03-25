@@ -161,7 +161,7 @@ func (r *RedisCachedRepository) setPopularityScoreToRedis() {
 	for {
 		rows, err := r.db.Query("SELECT id, popularity_score FROM meme_coins LIMIT $1 OFFSET $2", limit, limit*page)
 		if err != nil {
-			log.Fatalf("Error fetching popularity scores: %v\b", err)
+			log.Printf("Error fetching popularity scores: %v\b", err)
 			return
 		}
 
@@ -178,7 +178,7 @@ func (r *RedisCachedRepository) setPopularityScoreToRedis() {
 		}
 		_, err = pipe.Exec(ctx)
 		if err != nil {
-			log.Fatalf("Error setting popularity scores in Redis: %v\n", err)
+			log.Printf("Error setting popularity scores in Redis: %v\n", err)
 			return
 		}
 
