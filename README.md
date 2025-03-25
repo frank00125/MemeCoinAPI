@@ -95,7 +95,7 @@ git clone https://github.com/frank00125/MemeCoinAPI.git
 cd MemeCoinAPI
 
 # Install dependencies
-go get
+go mod download
 
 # Set up the env for docker compose
 # You need to fill in the environment variables to .env file
@@ -112,7 +112,7 @@ docker compose up -d
 cat ./config/config.env.example > ./config/config.env.local
 
 # Database seeding
-go run ./seeds/seeds.go
+go run ./scripts/seeds.go
 
 # Start the project
 go run ./cmd/main.go
