@@ -33,8 +33,8 @@ func main() {
 	// Inject database connection pools
 	memeCoinRepository := repositories.NewMemeCoinRepository(connectionPool)
 	redisRepository := repositories.NewRedisCachedRepository(connectionPool, redisClient, repositories.RepositoryConfig{
-		SyncBatchSize: 3,
-		SyncInterval:  5,
+		SyncBatchSize: repositories.DefaultSyncBatchSize,
+		SyncInterval:  repositories.DefaultSyncInterval,
 		NeedToSync:    true,
 	})
 

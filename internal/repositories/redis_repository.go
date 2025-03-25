@@ -126,6 +126,9 @@ func (r *RedisCachedRepository) syncBatch(ids map[int]bool) {
 		log.Printf("Error committing transaction: %v", err)
 		tx.Rollback()
 	}
+
+	// Log the sync
+	log.Printf("Synced keys: %v", ids)
 }
 
 func (r *RedisCachedRepository) setDataToRedis() {

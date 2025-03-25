@@ -30,8 +30,8 @@ func TestRedisCachedRepository(t *testing.T) {
 		dbmock:    dbmock,
 		redismock: redismock,
 		redisCachedRepository: repositories.NewRedisCachedRepository(mockDB, mockRedisClient, repositories.RepositoryConfig{
-			SyncBatchSize: 10,
-			SyncInterval:  1,
+			SyncBatchSize: repositories.DefaultSyncBatchSize,
+			SyncInterval:  repositories.DefaultSyncInterval,
 			NeedToSync:    false,
 		}),
 	}
