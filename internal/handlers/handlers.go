@@ -150,6 +150,12 @@ func (handler *MemeCoinHandler) UpdateMemeCoin(context *gin.Context) {
 	}
 
 	updatedMemeCoin, err := handler.service.UpdateMemeCoin(urlParams.Id, reqBody.Description)
+	if updatedMemeCoin == nil {
+		context.JSON(http.StatusNotFound, HttpError{
+			Message: "MemeCoin not found",
+		})
+		return
+	}
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, HttpError{
 			Message: "Database Error",
