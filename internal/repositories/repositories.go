@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-
-	"github.com/jackc/pgx/v5"
 )
 
 func NewMemeCoinRepository(db *sql.DB) *MemeCoinRepository {
@@ -23,7 +21,7 @@ func (repo *MemeCoinRepository) FindOne(id int) (*MemeCoin, error) {
 	var memeCoin MemeCoin
 	row := repo.db.QueryRowContext(context.Background(), sqlStatement, id)
 	err := row.Scan(&memeCoin.Id, &memeCoin.Name, &memeCoin.Description, &memeCoin.CreatedAt, &memeCoin.PopularityScore)
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -42,7 +40,7 @@ func (repo *MemeCoinRepository) CreateOne(name string, description string) (*Mem
 	var newMemeCoin MemeCoin
 	row := repo.db.QueryRowContext(context.Background(), sqlStatement, name, description)
 	err := row.Scan(&newMemeCoin.Id, &newMemeCoin.Name, &newMemeCoin.Description, &newMemeCoin.CreatedAt, &newMemeCoin.PopularityScore)
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -61,7 +59,7 @@ func (repo *MemeCoinRepository) UpdateOne(id int, description string) (*MemeCoin
 	var updatedMemeCoin MemeCoin
 	row := repo.db.QueryRowContext(context.Background(), sqlStatement, id, description)
 	err := row.Scan(&updatedMemeCoin.Id, &updatedMemeCoin.Name, &updatedMemeCoin.Description, &updatedMemeCoin.CreatedAt, &updatedMemeCoin.PopularityScore)
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -71,15 +69,15 @@ func (repo *MemeCoinRepository) UpdateOne(id int, description string) (*MemeCoin
 }
 
 func (repo *MemeCoinRepository) DeleteOne(id int) (*MemeCoin, error) {
+	// Delete from database
 	const sqlStatement string = `
 		DELETE FROM meme_coins
 		WHERE id = $1
 		RETURNING id, name, description, created_at, popularity_score`
-
 	var deletedMemeCoin MemeCoin
 	row := repo.db.QueryRowContext(context.Background(), sqlStatement, id)
 	err := row.Scan(&deletedMemeCoin.Id, &deletedMemeCoin.Name, &deletedMemeCoin.Description, &deletedMemeCoin.CreatedAt, &deletedMemeCoin.PopularityScore)
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
