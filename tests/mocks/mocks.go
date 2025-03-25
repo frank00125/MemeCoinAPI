@@ -10,6 +10,9 @@ import (
 type MockMemeCoinRepository struct {
 }
 
+type MockRedisCachedRepository struct {
+}
+
 func (m *MockMemeCoinRepository) FindOne(id int) (*repositories.MemeCoin, error) {
 	if id == 0 {
 		return nil, errors.New("invalid ID")
@@ -68,4 +71,12 @@ func (m *MockMemeCoinRepository) getFakeMemeCoin() repositories.MemeCoin {
 		CreatedAt:       time.Now(),
 		PopularityScore: rand.Intn(99) + 1,
 	}
+}
+
+func (m *MockRedisCachedRepository) IncrementPopularityScore(id int) error {
+	if id == 0 {
+		return errors.New("invalid ID")
+	}
+
+	return nil
 }

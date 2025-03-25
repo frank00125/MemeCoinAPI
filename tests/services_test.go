@@ -15,7 +15,9 @@ var memeCoinService *services.MemeCoinService
 func TestMemeCoinService(t *testing.T) {
 	// Mock the repository
 	mockMemeCoinRepository := &mocks.MockMemeCoinRepository{}
-	memeCoinService = services.NewMemeCoinService(mockMemeCoinRepository)
+	mockRedisCachedRepository := &mocks.MockRedisCachedRepository{}
+
+	memeCoinService = services.NewMemeCoinService(mockMemeCoinRepository, mockRedisCachedRepository)
 
 	t.Run("CreateMemeCoin", testCreateMemeCoin)
 	t.Run("GetMemeCoin", testGetMemeCoin)
@@ -25,14 +27,7 @@ func TestMemeCoinService(t *testing.T) {
 }
 
 func testCreateMemeCoin(t *testing.T) {
-	// Test case 1: name is empty
-	_, err := memeCoinService.CreateMemeCoin(services.CreateMemeCoinInput{
-		Name:        "",
-		Description: "description",
-	})
-	assert.NotNil(t, err)
-
-	// Test case 2: name is not empty
+	// Test case 1: name is not empty
 	timeBeforeExecute := time.Now()
 	memeCoin, err := memeCoinService.CreateMemeCoin(services.CreateMemeCoinInput{
 		Name:        "name",
@@ -123,23 +118,10 @@ func testDeleteMemeCoin(t *testing.T) {
 
 func testPokeMemeCoin(t *testing.T) {
 	// Test case 1: id is invalid (id = 0 => invalid)
-	memeCoin, err := memeCoinService.PokeMemeCoin(0)
+	err := memeCoinService.PokeMemeCoin(0)
 	assert.NotNil(t, err)
-	assert.Nil(t, memeCoin)
 
 	// Test case 2: id is valid
-	timeBeforeExecute := time.Now()
-	memeCoin, err = memeCoinService.PokeMemeCoin(1)
-	timeAfterExecute := time.Now()
-
+	err = memeCoinService.PokeMemeCoin(1)
 	assert.Nil(t, err)
-	assert.NotNil(t, memeCoin)
-	assert.Greater(t, memeCoin.Id, 0)
-	assert.Less(t, memeCoin.PopularityScore, 100)
-	assert.Equal(t, "FakeCoin", memeCoin.Name)
-	assert.Equal(t, "A fake meme coin", memeCoin.Description)
-	assert.GreaterOrEqual(t, memeCoin.CreatedAt.UnixNano(), timeBeforeExecute.UnixNano())
-	assert.LessOrEqual(t, memeCoin.CreatedAt.UnixNano(), timeAfterExecute.UnixNano())
-	assert.Greater(t, memeCoin.PopularityScore, 0)
-	assert.Less(t, memeCoin.PopularityScore, 100)
 }

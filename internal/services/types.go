@@ -3,7 +3,8 @@ package services
 import "portto-assignment/internal/repositories"
 
 type MemeCoinService struct {
-	repo repositories.MemeCoinRepositoryInterface
+	repo  repositories.MemeCoinRepositoryInterface
+	redis repositories.RedisRepositoryInterface
 }
 
 type CreateMemeCoinInput struct {
@@ -16,5 +17,5 @@ type MemeCoinServiceInterface interface {
 	GetMemeCoin(id int) (*repositories.MemeCoin, error)
 	UpdateMemeCoin(id int, description string) (*repositories.MemeCoin, error)
 	DeleteMemeCoin(id int) (*repositories.MemeCoin, error)
-	PokeMemeCoin(id int) (*repositories.MemeCoin, error)
+	PokeMemeCoin(id int) error
 }

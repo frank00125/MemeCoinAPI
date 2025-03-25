@@ -1,26 +1,21 @@
 package services
 
 import (
-	"errors"
 	"portto-assignment/internal/repositories"
 )
 
-func NewMemeCoinService(memeCoinRepository repositories.MemeCoinRepositoryInterface) *MemeCoinService {
+func NewMemeCoinService(memeCoinRepository repositories.MemeCoinRepositoryInterface, redisRepository repositories.RedisRepositoryInterface) *MemeCoinService {
 	return &MemeCoinService{
-		repo: memeCoinRepository,
+		repo:  memeCoinRepository,
+		redis: redisRepository,
 	}
 }
 
 func (service *MemeCoinService) CreateMemeCoin(input CreateMemeCoinInput) (*repositories.MemeCoin, error) {
-	if input.Name == "" {
-		return nil, errors.New("name is required")
-	}
-
 	return service.repo.CreateOne(input.Name, input.Description)
 }
 
 func (service *MemeCoinService) GetMemeCoin(id int) (*repositories.MemeCoin, error) {
-
 	return service.repo.FindOne(id)
 }
 
@@ -33,18 +28,7 @@ func (service *MemeCoinService) DeleteMemeCoin(id int) (*repositories.MemeCoin, 
 	return service.repo.DeleteOne(id)
 }
 
-func (service *MemeCoinService) PokeMemeCoin(id int) (*repositories.MemeCoin, error) {
-	// Poke meme coin
-	err := service.repo.PokeOne(id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get updated meme coin after transaction
-	updatedMemeCoin, err := service.repo.FindOne(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedMemeCoin, nil
+func (service *MemeCoinService) PokeMemeCoin(id int) error {
+	// Increment popularity_score at redis
+	return service.redis.IncrementPopularityScore(id)
 }
