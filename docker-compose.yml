@@ -42,7 +42,7 @@ services:
     depends_on:
       - postgresql
       - redis
-    restart: always
+    restart: on-failure
 networks:
   backend:
     driver: bridge
